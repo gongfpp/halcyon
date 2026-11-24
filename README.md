@@ -7,7 +7,8 @@
 <p align="center">一个越往下滚越不对的产品官网。<br>单文件、零依赖、无外部资源。</p>
 
 <p align="center">
-  <a href="https://halcyon.gongfpp.icu">线上地址</a> ·
+  <a href="https://halcyon.gongfpp.icu">独立站</a> ·
+  <a href="https://game.gongfpp.icu/halcyon/">游戏匣入口</a> ·
   <a href="#它到底怎么变的">实现说明</a> ·
   <a href="#先说清楚">它在采集什么</a>
 </p>
@@ -20,7 +21,10 @@
 
 然后页面开始不对。字距一点点变宽，留白一点点变大，纸色一点点变暖，文案在被逐个字改写。滚到后半段，它会开始记录你——**滚动像素、停留时长、切没切标签页、屏幕分辨率、设备型号、渲染指纹**，全部真实。最后几行会出现一些它不可能知道的事。
 
-线上：<https://halcyon.gongfpp.icu>
+两个入口，同一份内容：
+
+- 独立站 <https://halcyon.gongfpp.icu>
+- 游戏匣 <https://game.gongfpp.icu/halcyon/>
 
 ## 截图
 
@@ -93,11 +97,21 @@ open index.html           # macOS
 
 ## 部署
 
-托管在腾讯云 EdgeOne Pages，自定义域名 `halcyon.gongfpp.icu`（CNAME + 平台免费证书，90 天自动续期）。
+`index.html` 有**两个线上入口**，同一份内容：
+
+| 入口 | 托管 | 发布方式 |
+|---|---|---|
+| `halcyon.gongfpp.icu` | 腾讯云 EdgeOne Pages（免费证书，90 天自动续期） | `edgeone makers deploy . -n halcyon` |
+| `game.gongfpp.icu/halcyon/` | 自建服务器 Caddy，作为游戏匣里的一个条目 | 由游戏匣仓库 `npm run deploy` 发布 |
+
+因为它们各存一份副本，**只改一边就会分叉**。所以别单独发布，跑这个：
 
 ```bash
-edgeone makers deploy . -n halcyon
+./deploy.sh           # 同步副本 → 发布游戏匣 → 发布 EdgeOne → 校验两边 md5 一致
+./deploy.sh --check   # 只校验两边是否一致，不发布
 ```
+
+脚本最后会打两个入口的 md5，不一致就退出码 1。
 
 ## 许可
 
