@@ -347,7 +347,7 @@ footer a:hover{color:#cfcbc3}
 footer .last{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:22px;
   border-top:1px solid rgba(255,255,255,.06);color:#666b64}
 
-#quiet{height:430vh;background:#050505;position:relative}
+#quiet{height:340vh;background:#050505;position:relative}
 #quiet .sticky{position:sticky;top:0;height:100vh;background:#050505;overflow:hidden}
 /* 句子叠在同一位置依次浮现，像字幕，而不是一行行往下堆 */
 #quiet .ql{position:absolute;left:0;right:0;top:50%;text-align:center;padding:0 32px;margin:0;
@@ -1680,7 +1680,7 @@ function frame(){
     }
   } else { lastY = y; lastYAt = nowMs; }
 
-  pq = clamp((y - quietTop) / Math.max(1, winH*3), 0, 1);
+  pq = clamp((y - quietTop) / Math.max(1, winH*2.4), 0, 1);
   pd = clamp((y - logTop) / logLen, 0, 1);
 
   setVar('--p', p.toFixed(3));
@@ -2211,7 +2211,7 @@ function revealLog(f){
   if(logShown > 0 && !dimmed) cursor.classList.add('on');
   if(logShown >= LOG_LINES.length && !fired.logEnd){
     fired.logEnd = 1;
-    setTimeout(lightsOut, 9000);
+    setTimeout(lightsOut, 5200);
   }
 }
 
@@ -2226,7 +2226,7 @@ function lightsOut(){
   setTimeout(function(){
     if(!$('#logtail')) return;
     $('#logtail').classList.add('on');
-  }, 16500);
+  }, 8000);
 }
 })();
 </script>
