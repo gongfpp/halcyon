@@ -1,0 +1,2187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>安澜 Halcyon · 让协作回归安静</title>
+<link id="favicon" rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231c5f5a'/%3E%3Ccircle cx='16' cy='16' r='7' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#f8f7f4;--ink:#111316;--mute:#6c7176;--line:#e4e2dc;--accent:#1c5f5a;
+  --track:0em;--gap:112px;--cw:1120px;--cardbg:#ffffff;
+  --p:0;--pd:0;
+}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:"Inter","SF Pro Text","Helvetica Neue","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  font-size:16px;line-height:1.7;overflow-x:hidden;letter-spacing:var(--track);
+  -webkit-font-smoothing:antialiased;
+}
+body.locked{overflow:hidden}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:var(--cw);margin:0 auto;padding:0 32px}
+main[id],section[id]{scroll-margin-top:78px}
+.sec{padding:var(--gap) 0;position:relative}
+.kicker{font-size:11px;letter-spacing:.2em;color:var(--mute);text-transform:uppercase;margin-bottom:18px}
+h2{font-size:clamp(26px,3.4vw,40px);line-height:1.24;letter-spacing:-.02em;font-weight:600;text-wrap:balance}
+h3{font-size:18px;line-height:1.4;font-weight:600;letter-spacing:-.01em}
+p.lead{font-size:17px;color:#40464b;line-height:1.75;max-width:56ch}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 26px;
+  border-radius:999px;font-size:15px;font-weight:500;border:1px solid transparent;cursor:pointer;
+  background:transparent;font-family:inherit;line-height:1;
+  transition:transform .18s,background-color .2s,border-color .2s}
+.btn.solid{background:var(--ink);color:#fff}
+.btn.ghost{border-color:var(--line)}
+.btn.ghost:hover{border-color:#c9c6be}
+
+#grain{position:fixed;inset:-60%;z-index:80;pointer-events:none;opacity:.026;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+  background-size:200px 200px;animation:grainShift 1.1s steps(4) infinite;transition:opacity 2s}
+@keyframes grainShift{0%{transform:translate(0,0)}25%{transform:translate(-2%,1.5%)}
+  50%{transform:translate(1.5%,-2%)}75%{transform:translate(-1%,-1%)}100%{transform:translate(0,0)}}
+body.late #grain{opacity:.07;mix-blend-mode:screen}
+#vig{position:fixed;inset:0;z-index:79;pointer-events:none;opacity:0;
+  background:radial-gradient(ellipse at 50% 42%,transparent 32%,rgba(0,0,0,.66) 100%)}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:70;height:66px;display:flex;align-items:center;
+  background:rgba(248,247,244,.86);backdrop-filter:saturate(1.2) blur(14px);
+  border-bottom:1px solid transparent;transition:background .8s,border-color .8s,color .8s,opacity 1.2s,transform 1.2s}
+nav .wrap{display:flex;align-items:center;gap:36px;width:100%}
+.brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:16px;letter-spacing:0}
+.mark{width:24px;height:24px;border-radius:7px;background:var(--accent);position:relative;flex:none;
+  display:grid;place-items:center;transition:background .9s}
+.mark::before{content:"";width:11px;height:11px;border:1.6px solid #fff;border-radius:50%;transition:all .7s}
+.mark::after{content:"";width:4px;height:4px;background:var(--cardbg);border-radius:50%;position:absolute;transition:all .7s}
+body.eye .mark::before{width:12px;height:7px;border-radius:50%}
+body.eye .mark::after{width:5px;height:5px;background:#0a0a0a;box-shadow:0 0 0 1px #fff inset}
+nav .links{display:flex;gap:26px;font-size:14px;color:#4c5157;transition:gap 1s}
+nav .links a{transition:color .5s,opacity .8s}
+nav .links a.gone{display:none}
+nav .right{margin-left:auto;display:flex;align-items:center;gap:16px;font-size:14px}
+nav .right .signin{color:#4c5157}
+nav .right .btn{height:38px;padding:0 18px;font-size:13.5px}
+body.dark-nav nav{background:#0a0b0c;border-bottom-color:rgba(255,255,255,.06);color:#e8e5df}
+body.dark-nav nav .links,body.dark-nav nav .right .signin{color:#8b8680}
+body.dark-nav nav .btn.solid{background:#e9e5dc;color:#0b0c0d}
+body.final nav{opacity:0;transform:translateY(-12px);pointer-events:none}
+body.final #panel{opacity:0;transform:translateY(8px)}
+#logsec.dark .loghead,#logsec.dark #logbody,#logsec.dark .cursor{opacity:.07;
+  transition:opacity 7.5s cubic-bezier(.45,0,.85,1)}
+
+.hero{padding:136px 0 84px;position:relative;overflow:clip}
+.hero::before{content:"";position:absolute;right:-14%;top:-22%;width:62vw;height:62vw;
+  max-width:820px;max-height:820px;pointer-events:none;transition:opacity 2.5s;
+  background:radial-gradient(circle at 50% 50%,rgba(28,95,90,.10),rgba(28,95,90,0) 62%)}
+.hero .grid{display:grid;grid-template-columns:.98fr 1.02fr;gap:56px;align-items:center}
+.hleft{min-width:0}
+h1{font-size:clamp(33px,4.6vw,54px);line-height:1.14;letter-spacing:-.038em;font-weight:600}
+.h1split span{display:block}
+.hero .sub{margin-top:20px;font-size:16.5px;color:#41474c;max-width:42ch;line-height:1.72}
+.hero .cta{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap}
+
+.hbadge{display:inline-flex;align-items:center;gap:9px;font-size:12.5px;color:#3c4247;
+  border:1px solid var(--line);background:rgba(255,255,255,.55);border-radius:999px;
+  padding:5px 13px 5px 6px;margin-bottom:26px;
+  transition:border-color .4s,color .6s,background .8s}
+.hbadge b{font-size:10.5px;font-weight:600;letter-spacing:.04em;background:var(--accent);color:#fff;
+  border-radius:999px;padding:2px 7px;transition:background 1s}
+.hbadge .arr{color:#a3a8a4;transition:transform .3s}
+.hbadge:hover .arr{transform:translateX(2px)}
+
+.trust{margin-top:28px;display:flex;align-items:center;gap:14px}
+.avs{display:flex}
+.avs i{width:27px;height:27px;border-radius:50%;border:2px solid var(--paper);margin-left:-9px;
+  background:linear-gradient(140deg,#dfe3df,#c8d0cb);transition:background 1.2s,border-color 1s}
+.avs i:first-child{margin-left:0}
+.avs i:nth-child(2){background:linear-gradient(140deg,#e6ded5,#d0c4b5)}
+.avs i:nth-child(3){background:linear-gradient(140deg,#d8dfe6,#bac5d0)}
+.avs i:nth-child(4){background:linear-gradient(140deg,#e3dbdf,#ccbec5)}
+.avs i.more{background:var(--ink);color:#fff;font-size:9.5px;display:grid;place-items:center;
+  font-style:normal;font-weight:500;letter-spacing:0}
+.tnote span{display:block;font-size:13px;color:#5b6166;transition:color .8s}
+.tnote small{display:block;font-size:11.5px;color:#9ca29e;margin-top:2px}
+
+.win{background:var(--cardbg);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  box-shadow:0 1px 3px rgba(20,30,28,.05),0 28px 66px -38px rgba(20,30,28,.30),0 56px 110px -70px rgba(20,30,28,.22);
+  transition:transform 1.6s,background .8s}
+.wbar{height:34px;display:flex;align-items:center;gap:6px;padding:0 12px;background:#fbfaf8;
+  border-bottom:1px solid #eeece7;transition:background .8s,border-color .8s}
+.wbar i{width:7px;height:7px;border-radius:50%;background:#e4e2dc}
+.wbar .u{margin-left:10px;font-size:10.5px;color:#a6aba7;letter-spacing:.02em}
+.wbody{display:grid;grid-template-columns:108px 1fr 116px;min-height:332px}
+.wside{border-right:1px solid #f0eee9;background:#fcfbf9;padding:11px 8px;font-size:11.5px;color:#5f6568;
+  transition:background .8s,border-color .8s}
+.wh{font-size:9.5px;letter-spacing:.16em;color:#a8ada8;padding:6px 8px 5px}
+.wi{padding:6px 8px;border-radius:6px;display:flex;justify-content:space-between}
+.wi b{font-weight:500;color:#a8ada8;font-variant-numeric:tabular-nums}
+.wi.on{background:#edf3f1;color:var(--accent);font-weight:500}
+.wmain{padding:12px 13px 0;display:flex;flex-direction:column;min-width:0}
+.wmh{display:flex;align-items:baseline;gap:8px;white-space:nowrap;padding-bottom:9px;border-bottom:1px solid #f2f0eb;margin-bottom:11px}
+.wmh b{font-size:12.5px;font-weight:600;color:#20262a}
+.wmh span{font-size:10.5px;color:#a8ada8}
+.msg2{display:flex;gap:8px;margin-bottom:9px}
+.msg2 i{width:20px;height:20px;border-radius:50%;background:#e6e3dc;flex:none;margin-top:2px;transition:background 1s}
+.msg2 i.c2{background:#dfe4e0}
+.msg2 i.c3{background:#e8e0d6}
+.msg2.sys i{background:var(--accent);opacity:.72}
+.msg2 em{font-style:normal;display:flex;gap:6px;align-items:baseline;margin-bottom:1px;white-space:nowrap}
+.msg2 em b{font-size:10.5px;font-weight:500;color:#3c4145}
+.msg2 em time{font-size:9.5px;color:#b6bab6;font-variant-numeric:tabular-nums}
+.msg2 p{font-size:11.8px;line-height:1.68;color:#454b4f;letter-spacing:0}
+.msg2.sys p{color:var(--accent)}
+.win-input{margin-top:auto;margin-bottom:12px;border:1px solid #eeece7;background:#fbfaf8;border-radius:8px;
+  padding:7px 10px;display:flex;justify-content:space-between;font-size:11px;color:#b4b8b4}
+.waside{border-left:1px solid #f0eee9;padding:11px;background:#fcfbf9;transition:background .8s,border-color .8s}
+.wsum{font-size:10.5px;line-height:1.6;color:#6b7175;margin:2px 0 12px}
+.wkv{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-top:1px solid #f2f0eb;
+  font-size:10.5px;color:#8d938f}
+.wkv b{font-size:13px;color:#20262a;font-weight:600;font-variant-numeric:tabular-nums}
+@media (min-width:1180px){.win{margin-right:-42px}}
+
+.logos{padding:4px 0 60px;border-bottom:1px solid var(--line)}
+.logos .cap{font-size:11.5px;letter-spacing:.16em;color:#9aa0a0;margin-bottom:24px}
+.logos .row{display:flex;gap:38px;flex-wrap:wrap;align-items:center}
+.logos .row span{font-size:15px;font-weight:500;color:#3a4045;white-space:nowrap;opacity:.6;
+  transition:opacity 1.6s,color 1.6s}
+
+.head{max-width:660px;margin-bottom:48px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{background:var(--cardbg);border:1px solid var(--line);border-radius:14px;padding:26px 24px 28px;
+  transition:transform .7s,opacity .7s}
+.card .ic{width:32px;height:32px;border-radius:9px;background:#f1efea;display:grid;place-items:center;margin-bottom:18px}
+.card .ic svg{width:16px;height:16px;stroke:#38403f;fill:none;stroke-width:1.6}
+.card p{margin-top:10px;font-size:14px;color:#5d6367;line-height:1.72}
+
+.flow{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:44px}
+.step{position:relative;padding-top:22px;border-top:2px solid var(--ink);transition:border-color 1.2s}
+.step .n{font-size:11px;letter-spacing:.18em;color:var(--mute);margin-bottom:12px}
+.step h3{margin-bottom:9px}
+.step p{font-size:14px;color:#5d6367;line-height:1.72}
+
+.igrid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:background .9s,border-color .9s}
+.it{background:var(--cardbg);padding:17px 15px 19px;display:flex;flex-direction:column;gap:8px;
+  transition:background .9s}
+.it .lg{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:#fff;
+  font-size:11.5px;font-weight:600;letter-spacing:0;transition:background 1s}
+.it b{font-size:13.5px;font-weight:500;color:#23282c;transition:color .8s}
+.it small{font-size:11px;color:#9ba19d;transition:color .8s}
+.it.add{background:#fbfaf8}
+.it.add .lg{background:transparent;border:1px dashed #cfd3ce;color:#a6aba7;font-weight:400}
+.it.on .lg{background:var(--accent);border-style:solid;color:#fff}
+.icap{margin-top:18px;font-size:12px;color:#9ba19d;letter-spacing:.02em}
+
+.cmp{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--cardbg);
+  transition:background .9s,border-color .9s}
+.cmp-h,.cmp-r{display:grid;grid-template-columns:1.5fr 1fr 1fr}
+.cmp-h>div,.cmp-r>div{padding:15px 20px}
+.cmp-h{background:#fbfaf8;border-bottom:1px solid var(--line);font-size:11.5px;letter-spacing:.12em;
+  color:#9ba19d;transition:background .9s,border-color .9s}
+.cmp-h .us{color:var(--accent);font-weight:600;letter-spacing:.06em}
+.cmp-r{border-bottom:1px solid #f2f0eb;font-size:14px;color:#5d6367;transition:border-color .9s}
+.cmp-r>div:first-child{color:#23282c;font-weight:500}
+.cmp-r .us{background:rgba(28,95,90,.045);color:#23282c;font-weight:500}
+.cmp-r.last{border-bottom:0}
+
+.statline{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 0;
+  transition:border-color .9s}
+.statline .sl{display:flex;align-items:center;gap:34px;flex-wrap:wrap;font-size:13px;color:#5d6367}
+.sl-l{display:flex;align-items:center;gap:9px}
+.sl-l b{font-weight:500;color:#23282c;transition:color .9s}
+.sl-l .dot{width:7px;height:7px;border-radius:50%;background:#3f9e6a;
+  box-shadow:0 0 0 4px rgba(63,158,106,.12);transition:background 1.8s,box-shadow 1.8s}
+.sl-m{display:flex;gap:22px;font-size:12px;color:#9ba19d}
+.sl-m i{font-style:normal;color:#3f7a5e}
+.sl-r{margin-left:auto;display:flex;align-items:center;gap:18px;font-size:12px;color:#9ba19d}
+.sl-r a{color:var(--accent)}
+
+.tl{border-top:1px solid var(--line);transition:border-color .9s}
+.tl-r{display:grid;grid-template-columns:96px 1fr;gap:24px;padding:20px 0;border-bottom:1px solid var(--line);
+  transition:border-color .9s}
+.tl-r .y{font-size:13px;color:#9ba19d;font-variant-numeric:tabular-nums;letter-spacing:.06em}
+.tl-r .c{font-size:15px;color:#3c4247}
+.tl-r.now .y{color:var(--accent);font-weight:600}
+
+.appwrap{display:grid;grid-template-columns:.86fr 1.14fr;gap:52px;align-items:center}
+.app{background:var(--cardbg);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  box-shadow:0 30px 70px -46px rgba(0,0,0,.35);transition:transform 1.2s}
+.app-top{height:38px;display:flex;align-items:center;gap:6px;padding:0 13px;border-bottom:1px solid #f0eee9;background:#fbfaf8}
+.app-top .dot{width:7px;height:7px;border-radius:50%;background:#e6e4de}
+.app-top .t{margin-left:auto;font-size:11px;color:#9aa09c}
+.app-body{display:grid;grid-template-columns:126px 1fr;min-height:296px}
+.app-side{border-right:1px solid #f0eee9;padding:12px 10px;font-size:12.5px;color:#5f6568;background:#fcfbf9}
+.app-side .r{padding:7px 9px;border-radius:6px;display:flex;justify-content:space-between}
+.app-side .r.on{background:#eef4f2;color:#1c5f5a;font-weight:500}
+.app-side .r b{font-weight:500;color:#9aa09c;font-variant-numeric:tabular-nums}
+.msgs{padding:12px 14px;display:flex;flex-direction:column;gap:11px;overflow:hidden}
+.msg{display:flex;gap:9px;animation:msgIn .6s ease both}
+@keyframes msgIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.msg .av{width:22px;height:22px;border-radius:50%;background:#e6e3dc;flex:none;margin-top:1px;transition:background 1s}
+.msg .b{font-size:12.5px;line-height:1.55;color:#3c4145}
+.msg .nm{font-size:11px;color:#9aa09c;margin-bottom:2px;display:flex;gap:7px;letter-spacing:0}
+.msg .nm b{font-weight:500}
+.msg .nm time{font-variant-numeric:tabular-nums}
+.msg.sys .av{background:#1c5f5a;opacity:.65}
+.msg.sys .b{color:#1c5f5a}
+.msg.odd .b{color:#7a2f26}
+.msg.odd .av{background:#8c2f24;opacity:.5}
+.app-foot{border-top:1px solid #f0eee9;padding:9px 14px;font-size:12px;color:#a3a8a4;display:flex;gap:8px;align-items:center}
+.dots i{display:inline-block;width:3px;height:3px;border-radius:50%;background:#b9bdb9;margin-right:2px;
+  animation:blink 1.6s infinite}
+.dots i:nth-child(2){animation-delay:.22s}.dots i:nth-child(3){animation-delay:.44s}
+@keyframes blink{0%,60%,100%{opacity:.2}30%{opacity:1}}
+
+.stats{background:#101314;color:#e9e6df;padding:70px 0;transition:background 1.6s}
+.stats .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:26px}
+.stats .n{font-size:clamp(26px,3.1vw,40px);font-weight:600;letter-spacing:-.03em;line-height:1.1;
+  font-variant-numeric:tabular-nums}
+.stats .l{font-size:12.5px;color:#8d928f;margin-top:8px}
+
+.quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:44px}
+.plcs{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:44px}
+.plc{background:var(--cardbg);border:1px solid var(--line);border-radius:14px;padding:26px 24px;
+  transition:background 1.4s,border-color 1.4s}
+.plc .pn{font-size:19px;font-weight:600;letter-spacing:-.01em}
+.plc .pa{font-size:13px;color:#5c6266;margin-top:8px;line-height:1.6}
+.plc .pm{font-size:12px;color:#9aa0a0;margin-top:18px;padding-top:14px;border-top:1px solid var(--line);line-height:1.6}
+.plnote{margin-top:26px;font-size:12.5px;color:#8b9095;line-height:1.7}
+@media (max-width:900px){.plcs{grid-template-columns:1fr}}
+.q{background:var(--cardbg);border:1px solid var(--line);border-radius:14px;padding:24px;font-size:14px;
+  line-height:1.78;color:#383e42;transition:opacity 1s,transform 1s}
+.q .who{margin-top:18px;display:flex;align-items:center;gap:9px;font-size:12.5px;color:#8b9095}
+.q .av{width:24px;height:24px;border-radius:50%;background:#e8e5df;flex:none;transition:background 1s}
+.q .who b{color:#2b3135;font-weight:500}
+
+.case{background:var(--cardbg);border:1px solid var(--line);border-radius:16px;padding:42px;margin-top:40px;
+  display:grid;grid-template-columns:1.2fr .8fr;gap:44px;align-items:center}
+.case .big{font-size:clamp(19px,2.3vw,27px);line-height:1.55;letter-spacing:-.015em}
+.case .sig{margin-top:18px;font-size:12.5px;color:#8b9095}
+.case .nums{display:grid;gap:14px}
+.case .nums div{display:flex;justify-content:space-between;align-items:baseline;
+  border-bottom:1px solid #f0eee9;padding-bottom:9px}
+.case .nums b{font-size:21px;font-weight:600;font-variant-numeric:tabular-nums}
+.case .nums span{font-size:12.5px;color:#7b8085}
+
+.price .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:44px}
+.tier{border:1px solid var(--line);border-radius:14px;padding:28px 24px;background:var(--cardbg);
+  display:flex;flex-direction:column;transition:border-color 1.2s}
+.tier.hl{border-color:#111316;box-shadow:0 20px 50px -34px rgba(0,0,0,.4)}
+.tier .tag{font-size:11px;letter-spacing:.14em;color:var(--accent);margin-bottom:12px}
+.tier .amt{font-size:32px;font-weight:600;letter-spacing:-.03em}
+.tier .amt small{font-size:12px;font-weight:400;color:#8b9095;letter-spacing:0}
+.tier ul{list-style:none;margin:20px 0 24px;font-size:13.5px;color:#5c6266;display:grid;gap:8px}
+.tier ul li::before{content:"—";color:#b6b3ac;margin-right:8px}
+.tier .btn{width:100%;margin-top:auto}
+.tier .slots{font-size:11.5px;color:#a3a29c;margin-top:11px;text-align:center}
+.tier .tnote2{font-size:11.5px;line-height:1.55;color:#9b9f9d;margin-top:11px;text-align:center;
+  opacity:0;max-height:0;overflow:hidden;transition:opacity .7s ease,max-height .7s ease,color 1.4s}
+.tier .tnote2.on{opacity:1;max-height:56px}
+.tier .btn.done{background:#eceae4;color:#63675f;border-color:#dedbd3;cursor:default;box-shadow:none}
+body.late .tier .btn.done{background:rgba(255,255,255,.03);color:#7f7b74;border-color:rgba(255,255,255,.06)}
+
+.sec2{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+.dc{border-top:1px solid var(--line);margin-top:24px}
+.dc .r{display:flex;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line);font-size:14px}
+.dc .r span:last-child{color:#7b8085;font-variant-numeric:tabular-nums}
+.badges{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:28px}
+.badge{border:1px solid var(--line);border-radius:10px;padding:14px 10px;text-align:center;
+  font-size:11px;letter-spacing:.08em;color:#7b8085;transition:all 1.4s;min-height:46px;display:grid;place-items:center}
+
+.log-list{margin-top:40px;border-top:1px solid var(--line)}
+.log-item{display:grid;grid-template-columns:96px 76px 1fr;gap:22px;padding:16px 0;
+  border-bottom:1px solid var(--line);font-size:14px;align-items:baseline}
+.log-item .v{font-size:12px;color:#9aa09c;font-variant-numeric:tabular-nums;letter-spacing:0}
+.log-item .d{font-size:12px;color:#9aa09c;font-variant-numeric:tabular-nums;letter-spacing:0}
+.log-item .t{color:#3c4145;line-height:1.6;transition:color 1s}
+.log-item.fresh .t{color:#111}
+.log-item.bad .t{color:#7a2f26}
+
+.team{display:grid;grid-template-columns:repeat(6,1fr);gap:22px;margin-top:44px}
+.mem{text-align:center}
+.mem .pic{width:100%;aspect-ratio:1;border-radius:50%;background:#e9e6e0;margin-bottom:12px;
+  position:relative;overflow:hidden;transition:background 1.4s}
+.mem .pic::after{content:"";position:absolute;inset:34% 40% 42% 40%;background:#c9c4ba;border-radius:50%;
+  transition:opacity 1.2s}
+.mem.gone .pic::after{opacity:0}
+.mem .nm{font-size:13px;font-weight:500;transition:color .9s}
+.mem .rl{font-size:11.5px;color:#9aa09c;margin-top:2px;transition:color .9s;letter-spacing:0}
+
+.faq .list{margin-top:40px;border-top:1px solid var(--line)}
+.faq details{border-bottom:1px solid var(--line);padding:18px 0}
+.faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:20px;
+  font-size:15.5px;font-weight:500;letter-spacing:0}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";color:#9aa0a0;transition:transform .3s;font-weight:400}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq .a{padding-top:12px;font-size:14px;color:#5b6165;line-height:1.8;max-width:72ch}
+
+.cta-band{background:#0b0c0d;color:#f0ede6;padding:110px 0 92px}
+.cta-band h2{font-size:clamp(27px,3.9vw,44px)}
+.cta-band p{color:#8e938f;margin-top:16px;max-width:46ch}
+.cta-band .cta{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap}
+.cta-band .btn.solid{background:#f2efe8;color:#0b0c0d}
+.cta-band .btn.ghost{border-color:rgba(255,255,255,.18);color:#cfcbc3}
+.ctaform{display:flex;gap:10px;flex-wrap:wrap;margin-top:32px;
+  max-height:0;opacity:0;overflow:hidden;transform:translateY(-4px);
+  transition:max-height .7s ease,opacity .5s ease,transform .5s ease,margin .5s}
+.ctaform.on{max-height:80px;opacity:1;transform:none}
+.ctaform.shut{max-height:0;opacity:0;margin-top:0;transform:translateY(-4px)}
+.ctaform input{height:48px;min-width:184px;flex:1;max-width:260px;padding:0 16px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:#f0ede6;
+  font-family:inherit;font-size:14px;outline:none;transition:border-color .3s,background .3s}
+.ctaform input::placeholder{color:#7b807b}
+.ctaform input:focus{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.08)}
+.ctaok{margin-top:24px;font-size:13.5px;line-height:1.7;color:#9a9f98;max-width:52ch;
+  max-height:0;opacity:0;overflow:hidden;transition:max-height .7s ease,opacity .7s ease}
+.ctaok.on{max-height:120px;opacity:1}
+.ctaok b{color:#e6e2da;font-weight:500}
+footer{background:#0b0c0d;color:#84897f;padding:44px 0 60px;font-size:12.5px;
+  border-top:1px solid rgba(255,255,255,.06)}
+footer .cols{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:32px;margin-bottom:48px}
+footer h5{font-size:11px;letter-spacing:.16em;color:#5f645e;margin-bottom:13px;font-weight:500}
+footer ul{list-style:none;display:grid;gap:8px}
+footer a:hover{color:#cfcbc3}
+footer .last{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:22px;
+  border-top:1px solid rgba(255,255,255,.06);color:#666b64}
+
+#quiet{height:250vh;background:#050505;position:relative}
+#quiet .sticky{position:sticky;top:0;height:100vh;background:#050505;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;padding:0 0 4vh}
+#quiet .ql{position:relative;text-align:center;padding:0 32px;margin:0;
+  font-family:"Songti SC","Noto Serif SC","SimSun",serif;color:#a9a29a;
+  font-size:clamp(15px,2.1vw,22px);letter-spacing:.22em;line-height:2.2;opacity:0;
+  transform:translateY(6px);transition:opacity 2.6s,transform 2.6s}
+#quiet .ql.on{transform:none}
+
+#logsec{height:520vh;background:#050505;position:relative}
+#logsec .sticky{position:sticky;top:0;height:100vh;padding:14vh 0 12vh;background:#050505;
+  overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+.logwrap{width:100%;max-width:780px;margin:0 auto;padding:0 28px}
+.loghead{font-size:10.5px;letter-spacing:.28em;color:#4e4c48;margin-bottom:26px;
+  padding-bottom:12px;border-bottom:1px solid #1c1c1a}
+#logbody{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  font-size:clamp(10.5px,1.05vw,13px);line-height:2.0;
+  color:#8e8880;letter-spacing:0}
+#logbody div{min-height:1.2em}
+#logtail{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:11.5px;
+  color:#6e6a62;letter-spacing:.06em;margin-top:34px;opacity:0;transition:opacity 7s ease}
+#logtail.on{opacity:1}
+@media (max-width:640px){
+  #logsec .sticky{padding:10vh 0 9vh}
+  .logwrap{padding:0 20px}
+  #logbody{line-height:1.85}
+}
+#logbody .t{color:#5a5650;margin-right:12px}
+#logbody .odd{color:#a8564b}
+#logbody .end{color:#ded6c8}
+.cursor{display:inline-block;width:7px;height:14px;background:#8e8880;vertical-align:-2px;
+  opacity:0;transition:opacity .8s}
+.cursor.on{opacity:1;animation:cur 1.1s steps(1) infinite}
+@keyframes cur{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+#panel{position:fixed;left:16px;bottom:14px;z-index:90;font-size:10.5px;letter-spacing:.1em;color:#8b8f8b;
+  border:1px solid rgba(0,0,0,.08);border-radius:8px;padding:8px 10px;background:rgba(255,255,255,.55);
+  backdrop-filter:blur(8px);opacity:0;transform:translateY(6px);pointer-events:none;line-height:1.9;
+  font-variant-numeric:tabular-nums;transition:opacity .9s,transform .9s,color 1.2s,border-color 1.2s,background 1.2s}
+#panel.on{opacity:1;transform:none}
+#panel b{color:#3e4347;font-weight:500;transition:color 1.2s}
+#panel .ln{display:flex;gap:12px;justify-content:space-between}
+body.late #panel{color:#6f6a62;border-color:rgba(255,255,255,.1);background:rgba(10,10,10,.4)}
+body.late #panel b{color:#a8a29a}
+#sound{position:fixed;right:14px;bottom:14px;z-index:91;height:32px;padding:0 13px;border-radius:999px;
+  border:1px solid rgba(0,0,0,.1);background:rgba(255,255,255,.6);backdrop-filter:blur(8px);
+  font-size:11.5px;letter-spacing:.06em;color:#5d625e;cursor:pointer;font-family:inherit;
+  opacity:0;transform:translateY(6px);pointer-events:none;
+  transition:all .9s}
+#sound.on{opacity:1;transform:none;pointer-events:auto}
+body.late #sound{border-color:rgba(255,255,255,.12);background:rgba(10,10,10,.45);color:#98938a}
+#toast{position:fixed;top:78px;right:16px;z-index:92;width:262px;background:var(--cardbg);border:1px solid var(--line);
+  border-radius:11px;padding:11px 13px;box-shadow:0 18px 44px -26px rgba(0,0,0,.34);font-size:12.5px;
+  color:#3c4145;display:flex;gap:9px;line-height:1.55;opacity:0;transform:translateY(-8px);
+  pointer-events:none;transition:opacity .6s,transform .6s,background 1s,border-color 1s,color 1s}
+#toast.on{opacity:1;transform:none}
+#toast i{width:7px;height:7px;border-radius:50%;background:#3f9e6a;margin-top:5px;flex:none;transition:background 1s}
+#toast.warn i{background:#c2703f}
+@media (max-width:560px){
+  #toast{left:12px;right:12px;width:auto;top:74px;font-size:12px;padding:10px 12px}
+}
+#toast.bad i{background:#8c2f24}
+body.late #toast{background:#0e0e0f;border-color:rgba(255,255,255,.1);color:#a09a90}
+#cur{position:fixed;left:0;top:0;z-index:300;pointer-events:none;display:none}
+#cur .a{position:absolute;width:9px;height:9px;border-radius:50%;background:#111;transform:translate(-50%,-50%);
+  transition:background .8s}
+#cur .b{position:absolute;width:26px;height:26px;border-radius:50%;border:1px solid rgba(0,0,0,.26);
+  transform:translate(-50%,-50%);opacity:0;transition:opacity 1.6s,border-color .8s}
+body.cursors{cursor:none}
+body.cursors #cur{display:block}
+body.late #cur .a{background:#e6e0d4}
+body.late #cur .b{border-color:rgba(230,224,212,.3)}
+body.cursors #cur.shadow .b{opacity:1}
+
+@media (max-width:900px){
+  .wrap{padding:0 20px}
+  nav .wrap{padding:0 16px;gap:14px}
+  nav .right .signin{display:none}
+  .hero .grid,.appwrap,.sec2,.case{grid-template-columns:1fr;gap:40px}
+  .cards,.quotes,.price .grid{grid-template-columns:1fr}
+  .flow{grid-template-columns:1fr;gap:20px}
+  .stats .grid{grid-template-columns:1fr 1fr;gap:30px}
+  .team{grid-template-columns:repeat(3,1fr);gap:16px}
+  footer .cols{grid-template-columns:1fr 1fr}
+  nav .links{display:none}
+  :root{--gap:76px}
+  .log-item{grid-template-columns:80px 1fr;gap:6px}
+  .log-item .d{display:none}
+  .case{padding:26px}
+  .app-body{grid-template-columns:1fr}
+  .app-side{display:none}
+  .hero{padding:118px 0 66px}
+  .hero::before{opacity:.7}
+  .win{margin-right:0}
+  #panel{display:none}
+  .wbody{grid-template-columns:100px 1fr}
+  .waside{display:none}
+  .trust{margin-top:24px}
+}
+@media (max-width:520px){
+  .hero{padding:104px 0 56px}
+  .hbadge{font-size:11.5px;margin-bottom:20px}
+  .win .wbar .u{display:none}
+  .wbody{grid-template-columns:1fr;min-height:0}
+  .wside{display:none}
+  .hero .sub{font-size:16px}
+  .tnote span{font-size:12px;line-height:1.5}
+  .tnote small{display:none}
+  .cmp-h>div,.cmp-r>div{padding:12px 12px;font-size:12.5px}
+  .cmp-h{font-size:10.5px;letter-spacing:.06em}
+  .statline .sl{gap:14px 18px;font-size:12px}
+  .sl-m{display:none}
+  .sl-r{margin-left:0}
+  .tl-r{grid-template-columns:62px 1fr;gap:14px}
+  .tl-r .c{font-size:14px}
+}
+@media (prefers-reduced-motion:reduce){
+  #grain{animation:none}
+}
+
+/* ============ 广告位 ============ */
+.adtag{font-size:9.5px;letter-spacing:.15em;color:#a4a7aa;text-transform:uppercase;font-weight:500;line-height:1}
+.ad-x{border:0;background:transparent;color:#b8bbbe;font-size:13px;line-height:1;cursor:pointer;
+  padding:3px 5px;border-radius:4px;font-family:inherit;transition:color .3s,background .3s}
+.ad-x:hover{color:#111316;background:#f2f0eb}
+
+#adSide{position:fixed;z-index:60;right:12px;top:100px;width:220px;display:none;
+  opacity:0;transform:translateY(10px);transition:opacity .9s ease,transform .9s ease}
+@media (min-width:1600px){#adSide{display:block}}
+#adSide.on{opacity:1;transform:none}
+body.final #adSide{opacity:0;transform:translateY(8px);pointer-events:none}
+.ad-card{background:#fff;border:1px solid var(--line);border-radius:9px;overflow:hidden;
+  box-shadow:0 7px 20px rgba(20,24,28,.07);transition:border-color 1.4s,box-shadow 1.4s,background 1.4s}
+.ad-hd{display:flex;align-items:center;justify-content:space-between;padding:8px 9px 7px 11px}
+.ad-vis{height:84px;margin:0 9px 9px;border-radius:6px;position:relative;overflow:hidden;
+  background:linear-gradient(133deg,#0e2b28,#1c5f5a 56%,#2d8479);
+  transition:filter 1.8s,background 1.8s,opacity 1.8s}
+.ad-vis .lg{position:absolute;left:10px;top:8px;font-size:9px;letter-spacing:.18em;
+  color:rgba(255,255,255,.62);text-transform:uppercase}
+.ad-vis .big{position:absolute;left:10px;right:10px;bottom:8px;font-size:14px;line-height:1.32;
+  color:#fff;font-weight:600;letter-spacing:-.01em}
+.ad-ft{padding:0 11px 12px}
+.ad-tt{font-size:12.5px;font-weight:600;line-height:1.45;color:#16191c}
+.ad-dd{font-size:11.5px;line-height:1.55;color:#7d8185;margin-top:3px}
+.ad-ct{display:inline-block;margin-top:8px;font-size:11.5px;font-weight:500;color:var(--accent);
+  border-bottom:1px solid currentColor;padding-bottom:1px;cursor:pointer}
+body.late .ad-card{border-color:#d9d4c9;box-shadow:0 7px 22px rgba(30,26,18,.10)}
+#adSide.dark .ad-vis{filter:grayscale(1) brightness(.42)}
+#adSide.dark .ad-card{background:#f1eee7}
+
+/* 正文原生广告 */
+.adrow{padding:0 0 0}
+.ad-inline{max-width:var(--cw);margin:0 auto;padding:0 32px}
+.ad-in{position:relative;display:flex;align-items:center;gap:16px;padding:15px 18px;
+  border:1px solid var(--line);border-radius:10px;background:var(--cardbg);
+  transition:background 1.5s,border-color 1.5s,padding 1.5s}
+.ad-in .ico{width:42px;height:42px;border-radius:10px;flex:none;display:grid;place-items:center;
+  background:linear-gradient(133deg,#12332f,#246c64);color:#fff;font-size:14px;font-weight:600;
+  letter-spacing:.02em;transition:background 1.6s,filter 1.6s}
+.ad-in .tx{min-width:0;flex:1}
+.ad-in .tg{position:absolute;right:11px;top:9px}
+.ad-in .bg{font-size:13.5px;font-weight:600;line-height:1.45;padding-right:52px}
+.ad-in .sm{font-size:12px;color:#7d8185;line-height:1.55;margin-top:3px;padding-right:52px}
+.ad-in .go{flex:none;font-size:12px;padding:8px 15px;border-radius:999px;border:1px solid var(--line);
+  white-space:nowrap;cursor:pointer;transition:border-color .4s,color .4s,background .4s}
+.ad-in:hover .go{border-color:#bab6ac}
+.ad-in.ghost{background:transparent;border-style:dashed}
+.ad-in.ghost .ico{background:#e9e6df;color:#8b8e91}
+
+/* 页脚横幅 */
+.ad-band{max-width:var(--cw);margin:0 auto;padding:0 32px}
+.ad-bd{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:10px;
+  border:1px solid var(--line);background:var(--cardbg);transition:background 1.5s,border-color 1.5s}
+.ad-bd .sq{width:34px;height:34px;border-radius:8px;flex:none;background:#111316;color:#fff;
+  display:grid;place-items:center;font-size:12px;font-weight:600;letter-spacing:.04em}
+.ad-bd .tx{flex:1;min-width:0}
+.ad-bd .bg{font-size:13.5px;font-weight:600;line-height:1.4}
+.ad-bd .sm{font-size:12px;color:#7d8185;margin-top:2px}
+.ad-bd .go{flex:none;font-size:12px;padding:8px 16px;border-radius:999px;
+  border:1px solid #111316;cursor:pointer;transition:background .4s,color .4s,border-color .4s}
+.ad-bd:hover .go{background:#111316;color:#fff}
+
+@media (max-width:760px){
+  .ad-in{flex-wrap:wrap;gap:10px;padding:13px 15px}
+  .ad-in .go{width:100%;text-align:center}
+  .ad-bd{flex-wrap:wrap;gap:10px}
+  .ad-bd .go{width:100%;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<div id="grain"></div>
+<div id="vig"></div>
+<div id="cur"><div class="a"></div><div class="b"></div></div>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="mark"></span>安澜</a>
+    <div class="links">
+      <a href="#feat" data-nav>产品</a>
+      <a href="#flow" data-nav>方案</a>
+      <a href="#price" data-nav>价格</a>
+      <a href="#quotes" data-nav>客户</a>
+      <a href="#changelog" data-nav>更新</a>
+    </div>
+    <div class="right">
+      <a class="signin" href="#team">关于</a>
+      <a class="signin" href="#top">登录</a>
+      <a class="btn solid" href="#price">免费试用</a>
+    </div>
+  </div>
+</nav>
+
+<!-- 广告位：右侧 300×250 悬浮单元（真实营销站几乎都有）
+     以后要接真 AdSense：把 .ad-card 内部换成
+     <ins class="adsbygoogle" style="display:inline-block;width:220px;height:200px" data-ad-client="ca-pub-xxxx" data-ad-slot="xxxx"></ins>
+     并在 </body> 前加一次 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxx" crossorigin="anonymous"></script>
+     注意：审核要求有 隐私政策 / 关于 / 联系 三个独立页面，且本页文本偏惊悚，可能被判 policy 违规。 -->
+<aside id="adSide" aria-label="广告">
+  <div class="ad-card">
+    <div class="ad-hd">
+      <span class="adtag" id="adSTag">广告</span>
+      <button class="ad-x" id="adX" type="button" aria-label="关闭广告">✕</button>
+    </div>
+    <div class="ad-vis"><span class="lg" id="adSLg">CLOUDPIVOT</span><span class="big" id="adSBig">多云账单，一张表就够了。</span></div>
+    <div class="ad-ft">
+      <div class="ad-tt" id="adST">云枢 · 多云成本可视化</div>
+      <div class="ad-dd" id="adSD">接入 5 分钟，自动归集 47 类费用项。</div>
+      <a class="ad-ct" id="adSC" href="#" data-adcta>了解更多 →</a>
+    </div>
+  </div>
+</aside>
+
+<main id="top">
+
+<section class="hero">
+  <div class="wrap grid">
+    <div class="hleft">
+      <a class="hbadge" href="#changelog"><b>新</b>安澜 5.2 已发布 · 记录引擎<span class="arr">→</span></a>
+      <h1 class="h1split"><span class="swap" data-to="你正在被">让每一件事，</span><span class="swap" data-to="完整地记录。">都安静地完成。</span></h1>
+      <p class="sub swap" data-to="它一直在记录。不是为了你。">项目、消息、进度收进同一个窗口。它替你记住所有细节，替你盯着每一个截止日期——你只需要专心做事。</p>
+      <div class="cta">
+        <a class="btn solid" href="#price">免费开始使用</a>
+        <a class="btn ghost" href="#demo">观看 2 分钟演示</a>
+      </div>
+      <div class="trust">
+        <div class="avs"><i></i><i></i><i></i><i></i><i class="more">+</i></div>
+        <div class="tnote"><span id="heroNote">已有 12,000+ 团队在用 · 平均上手 8 分钟</span>
+          <small>无需信用卡 · 随时可以停用</small></div>
+      </div>
+    </div>
+    <div class="win">
+      <div class="wbar"><i></i><i></i><i></i><span class="u">app.halcyon.cn/workspace/autumn</span></div>
+      <div class="wbody">
+        <div class="wside">
+          <div class="wh">工作区</div>
+          <div class="wi on">收件箱<b>3</b></div>
+          <div class="wi">进行中<b>7</b></div>
+          <div class="wi">已归档</div>
+          <div class="wh">项目</div>
+          <div class="wi">秋招流程</div>
+          <div class="wi">季度汇报</div>
+          <div class="wi">品牌改版</div>
+        </div>
+        <div class="wmain">
+          <div class="wmh"><b>秋招流程</b><span>3 人 · 进行中</span></div>
+          <div class="msg2"><i></i><div><em><b>周子安</b><time>09:41</time></em><p>简历我下午过一遍。</p></div></div>
+          <div class="msg2"><i class="c2"></i><div><em><b>林澈</b><time>09:44</time></em><p>面试排在周三上午。</p></div></div>
+          <div class="msg2"><i class="c3"></i><div><em><b>沈迟</b><time>09:46</time></em><p>名单我更新了。</p></div></div>
+          <div class="msg2 sys" id="hmsg"><i></i><div><em><b>安澜</b><time>09:44</time></em><p id="hmsgp">已预留 90 分钟，并通知了 2 位面试官。</p></div></div>
+          <div class="win-input"><span>回复…</span><b>⏎</b></div>
+        </div>
+        <div class="waside">
+          <div class="wh">今日摘要</div>
+          <p class="wsum">3 项即将到期。</p>
+          <div class="wkv"><span>完成率</span><b>92%</b></div>
+          <div class="wkv"><span>活跃成员</span><b>2</b></div>
+          <div class="wkv"><span>延迟</span><b>0ms</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="logos">
+  <div class="wrap">
+    <div class="cap" id="logoCap">他们也在用安澜</div>
+    <div class="row" id="logoRow">
+      <span>长夜资本</span><span>白鹭科技</span><span>北岸设计</span>
+      <span>云栖医疗</span><span>三点半传媒</span><span>无名研究所</span>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="feat">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">为什么是安澜</div>
+      <h2><span class="swap" data-to="为了让你专心，">为安静而设计。</span></h2>
+      <p class="lead" style="margin-top:16px">我们把所有会打断你的东西拿掉了。剩下的部分只做一件事：不出错。</p>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5"/></svg></div>
+        <h3>一个窗口，所有进度</h3>
+        <p>任务、文档、讨论在同一条时间线上。你不需要在五个标签页之间来回确认，也不需要问任何人「这个到哪一步了」。</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg></div>
+        <h3 id="f2t">它比你更早发现问题</h3>
+        <p id="f2p">延期、遗漏、无人认领的工作，在变成事故之前就会被标出来。大多数团队第一次用时，都会以为有人在盯着他们。</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-6 6c0 5-2 6-2 6h16s-2-1-2-6a6 6 0 0 0-6-6z"/><path d="M10 21h4"/></svg></div>
+        <h3 id="f3t">安静的通知</h3>
+        <p id="f3p">没有红点，没有弹窗，没有深夜的提醒。只有真正需要你的那一条，才会出现。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="flow" style="background:var(--cardbg);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">它怎么工作</div>
+      <h2>三步，然后忘掉它。</h2>
+      <p class="lead" style="margin-top:16px">不需要培训，不需要迁移。你把事情交给它，它替你记住。</p>
+    </div>
+    <div class="flow">
+      <div class="step"><div class="n" id="s1n">01 · 记录</div><h3 id="s1t">它先看一遍</h3>
+        <p id="s1p">接入你的工作区，把散落在聊天、邮件、文档里的信息收拢成一条时间线。第一次同步大约需要 40 秒。</p></div>
+      <div class="step"><div class="n" id="s2n">02 · 整理</div><h3 id="s2t">它替你归类</h3>
+        <p id="s2p">谁在等谁、哪件事卡住、哪个日期已经不可能完成——这些不用你问，它每天整理一次。</p></div>
+      <div class="step"><div class="n" id="s3n">03 · 提醒</div><h3 id="s3t">它只在该说话时说话</h3>
+        <p id="s3p">真正的提醒一天不会超过三条。你不会觉得被打扰，只会觉得事情刚好被安排好了。</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="integ">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">集成</div>
+      <h2 id="intH">它已经在你的工具里。</h2>
+      <p class="lead" style="margin-top:16px">不需要迁移，不需要培训。你已经用的那些东西，接上就能用——它们只是想让你少切换几次窗口。</p>
+    </div>
+    <div class="igrid">
+      <div class="it"><span class="lg" style="background:#4a154b">S</span><b>Slack</b><small>已连接</small></div>
+      <div class="it"><span class="lg" style="background:#24292e">G</span><b>GitHub</b><small>已连接</small></div>
+      <div class="it"><span class="lg" style="background:#1e1e1e">F</span><b>Figma</b><small>已连接</small></div>
+      <div class="it"><span class="lg" style="background:#2f3437">N</span><b>Notion</b><small>已连接</small></div>
+      <div class="it"><span class="lg" style="background:#3370ff">飞</span><b>飞书</b><small>已连接</small></div>
+      <div class="it"><span class="lg" style="background:#1677ff">企</span><b>企业微信</b><small>已连接</small></div>
+      <div class="it"><span class="lg" style="background:#2d8cff">Z</span><b>Zoom</b><small>已连接</small></div>
+      <div class="it"><span class="lg" style="background:#0052cc">J</span><b>Jira</b><small>已连接</small></div>
+      <div class="it"><span class="lg" style="background:#3b7d3b">D</span><b>Google Drive</b><small>已连接</small></div>
+      <div class="it"><span class="lg" style="background:#c4432b">日</span><b>日历</b><small>已连接</small></div>
+      <div class="it"><span class="lg" style="background:#8a6d3b">邮</span><b>邮件</b><small>已连接</small></div>
+      <div class="it add" id="itYou"><span class="lg">+</span><b id="itYouT">添加集成</b><small>应用市场</small></div>
+    </div>
+    <div class="icap" id="integCap">12 个集成已连接 · 应用市场另有 200+ 个</div>
+  </div>
+</section>
+
+<section class="sec" id="demo">
+  <div class="wrap appwrap">
+    <div>
+      <div class="kicker">实时预览</div>
+      <h2>这里就是全部。</h2>
+      <p class="lead" style="margin-top:16px">左侧是工作区，右侧是消息。没有隐藏的菜单，没有第二层设置。你现在看到的界面，就是我们交付的全部。</p>
+      <p class="lead" style="margin-top:14px;color:#8a8f94;font-size:13.5px">以下消息为真实界面中的示例，不会自动更新。</p>
+    </div>
+    <div class="app" id="app">
+      <div class="app-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="t">安澜 · 收件箱</span></div>
+      <div class="app-body">
+        <div class="app-side">
+          <div class="r on"><span>全部</span><b id="unread">3</b></div>
+          <div class="r"><span>未读</span><b>2</b></div>
+          <div class="r"><span>已归档</span><b>—</b></div>
+          <div class="r" id="sideGone" style="opacity:.45"><span>已删除</span><b>—</b></div>
+        </div>
+        <div class="msgs" id="msgs">
+          <div class="msg"><span class="av"></span><div><div class="nm"><b>周霖</b><time>09:41</time></div><div class="b">第二阶段的需求评审我改到周四了，不影响排期。</div></div></div>
+          <div class="msg"><span class="av"></span><div><div class="nm"><b>陈默</b><time>09:44</time></div><div class="b">收到。我今晚把版本整理好，明早你能看到。</div></div></div>
+          <div class="msg sys"><span class="av"></span><div><div class="nm"><b>安澜</b><time>09:45</time></div><div class="b">已为 3 位成员开启「持续记录」。</div></div></div>
+        </div>
+      </div>
+      <div class="app-foot"><span class="dots"><i></i><i></i><i></i></span><span id="ph">输入消息…</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="stats" id="stats">
+  <div class="wrap grid">
+    <div><div class="n" id="n1">12,000+</div><div class="l" id="l1">团队</div></div>
+    <div><div class="n" id="n2">99.98%</div><div class="l" id="l2">可用性</div></div>
+    <div><div class="n" id="n3">4.9<span style="font-size:.5em;color:#7c817e">/5</span></div><div class="l" id="l3">用户评分</div></div>
+    <div><div class="n" id="n4">47<span style="font-size:.42em;color:#7c817e;margin-left:6px">分钟 / 天</span></div><div class="l" id="l4">平均节省</div></div>
+  </div>
+</section>
+
+<section class="sec" id="quotes">
+  <div class="wrap">
+    <div class="kicker">客户声音</div>
+    <h2><span class="swap" data-to="它们">他们</span>怎么说</h2>
+    <div class="quotes" id="quoteRow">
+      <div class="q"><p>我们试过七个工具，最后留下了安澜。它不吵，但从不漏事。</p>
+        <div class="who"><span class="av"></span><span><b>周霖</b> · 长夜资本 运营负责人</span></div></div>
+      <div class="q"><p id="q2">有一次我半夜改方案，第二天打开时它已经把版本整理好了、附件补全了、时间也改了。我以为是有同事在帮我——</p>
+        <div class="who"><span class="av"></span><span><b>陈默</b> · 白鹭科技 产品经理</span></div></div>
+      <div class="q"><p id="q3">用了两年。我记不清的事，它都记得。</p>
+        <div class="who"><span class="av"></span><span><b>苏晚</b> · 北岸设计 创始人</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 广告位：正文内原生单元 A -->
+<section class="adrow" style="padding-bottom:calc(var(--gap) * .92)">
+  <div class="ad-inline">
+    <div class="ad-in" id="adIn1">
+      <div class="ico" id="adIn1Ico">星</div>
+      <div class="tx">
+        <span class="adtag tg" id="adIn1Tag">广告</span>
+        <div class="bg" id="adIn1T">看清团队每一分钟花在哪里。</div>
+        <div class="sm" id="adIn1D">星野数据 · 屏幕行为分析，支持 2,000 台终端，7 天免费试用</div>
+      </div>
+      <a class="go" id="adIn1C" href="#" data-adcta>免费试用</a>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="case">
+  <div class="wrap">
+    <div class="kicker">客户案例</div>
+    <h2>长夜资本：把 47 个项目收进一个窗口。</h2>
+    <div class="case">
+      <div>
+        <div class="big" id="caseQuote">「我们原来有三个人专门做对齐，每周开四次会。上线安澜之后，这三个人被调去做别的事了——因为不再需要有人记得。」</div>
+        <div class="sig" id="caseSig">周霖 · 长夜资本 运营负责人 · 使用 14 个月</div>
+      </div>
+      <div class="nums">
+        <div><span>对齐会议</span><b id="c1">−100%</b></div>
+        <div><span>漏项率</span><b id="c2">−92%</b></div>
+        <div><span>上线周期</span><b id="c3">−38%</b></div>
+        <div><span>团队规模</span><b id="c4">47 人</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="compare">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">对比</div>
+      <h2>和别人不同的地方，只有一行。</h2>
+      <p class="lead" style="margin-top:16px">功能表上的差别不大。真正的差别在最后一行。</p>
+    </div>
+    <div class="cmp">
+      <div class="cmp-h"><div></div><div>其他工具</div><div class="us" id="cmpUs">安澜</div></div>
+      <div class="cmp-r"><div>消息留存</div><div>30 天</div><div class="us">永久</div></div>
+      <div class="cmp-r"><div>数据存放位置</div><div>你选的服务器</div><div class="us" id="cmpLoc">我们的机房</div></div>
+      <div class="cmp-r"><div>谁能看到你的活动</div><div>管理员</div><div class="us" id="cmpWho">管理员和你</div></div>
+      <div class="cmp-r"><div>删除记录</div><div>随时可以</div><div class="us" id="cmpDel">可以申请</div></div>
+      <div class="cmp-r"><div>被打扰的次数</div><div>每天 8–20 次</div><div class="us">每天 0–1 次</div></div>
+      <div class="cmp-r last"><div>你在用吗</div><div>—</div><div class="us" id="cmpYou">是</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec price" id="price">
+  <div class="wrap">
+    <div class="kicker">价格</div>
+    <h2><span class="swap" data-to="只剩一个位置。">选一个适合你的。</span></h2>
+    <div class="grid">
+      <div class="tier"><div class="tag">免费版</div><div class="amt">¥0<small> / 人 / 月</small></div>
+        <ul><li>5 个项目</li><li>1 GB 附件空间</li><li>基础提醒</li></ul>
+        <button class="btn ghost" type="button" data-tier="已开启" data-note="不需要你确认。">开始使用</button>
+        <div class="tnote2"></div></div>
+      <div class="tier hl"><div class="tag">专业版 · 推荐</div><div class="amt">¥39<small> / 人 / 月</small></div>
+        <ul><li>不限项目</li><li>完整提醒与回溯</li><li>操作历史保留 2 年</li></ul>
+        <button class="btn solid" type="button" data-tier="试用已开始" data-note="14 天后自动续上。你不会收到提醒。">免费试用 14 天</button>
+        <div class="tnote2"></div></div>
+      <div class="tier"><div class="tag">永久版</div><div class="amt">¥4,900<small> / 一次付清</small></div>
+        <ul><li>不限人数</li><li>永久保留全部记录</li><li>不需要续费，也不需要退出</li></ul>
+        <button class="btn ghost" type="button" data-tier="名额已确认" data-note="本期名额 1 · 剩余 0（就是你）">申请名额</button>
+        <div class="tnote2" id="slots">本期名额 1 · 剩余 0</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="sec" style="background:var(--cardbg);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap sec2">
+    <div>
+      <div class="kicker">安全与合规</div>
+      <h2>你的数据，不会离开这里。</h2>
+      <p class="lead" style="margin-top:16px" id="secLead">全部数据存放在中国境内的三个可用区，每日增量备份，保留 90 天。传输与存储均为 AES-256 加密，任何员工都无权访问客户内容。</p>
+      <div class="badges">
+        <div class="badge" id="b1">ISO 27001</div>
+        <div class="badge" id="b2">等保三级</div>
+        <div class="badge" id="b3">SOC 2 Type II</div>
+      </div>
+    </div>
+    <div>
+      <div class="kicker">数据中心</div>
+      <div class="dc" id="dc">
+        <div class="r"><span>上海 · 可用区 A</span><span>正常</span></div>
+        <div class="r"><span>北京 · 可用区 B</span><span>正常</span></div>
+        <div class="r"><span>深圳 · 可用区 C</span><span>正常</span></div>
+      </div>
+      <p style="font-size:12.5px;color:#8b9095;margin-top:16px" id="dcNote">跨区同步延迟 &lt; 40ms。异地备份每小时一次。</p>
+    </div>
+  </div>
+</section>
+
+<section class="statline" id="status">
+  <div class="wrap sl">
+    <div class="sl-l">
+      <span class="dot" id="stDot"></span><b id="stT">所有系统运行正常</b>
+    </div>
+    <div class="sl-m">
+      <span>API <i>正常</i></span><span>同步 <i>正常</i></span><span id="stRec">记录 <i>正常</i></span>
+    </div>
+    <div class="sl-r"><span id="stSub">过去 90 天可用性 99.99%</span><a href="#status">状态页 →</a></div>
+  </div>
+</section>
+
+<section class="sec" id="changelog">
+  <div class="wrap">
+    <div class="kicker">更新日志</div>
+    <h2>我们最近改了什么。</h2>
+    <div class="log-list" id="logList">
+      <div class="log-item"><span class="v">v4.6.0</span><span class="d">11-18</span>
+        <span class="t">优化了通知的合并逻辑，同一天内的同类提醒会合并成一条。</span></div>
+      <div class="log-item"><span class="v">v4.5.2</span><span class="d">11-11</span>
+        <span class="t">修复了导出 CSV 时中文字段偶发错位的问题。</span></div>
+      <div class="log-item"><span class="v">v4.5.0</span><span class="d">11-04</span>
+        <span class="t">新增工作区级别的操作历史，保留 2 年，可按成员筛选。</span></div>
+      <div class="log-item"><span class="v">v4.4.1</span><span class="d">10-27</span>
+        <span class="t">修复了移动端偶尔无法下拉刷新的问题。</span></div>
+      <div class="log-item"><span class="v">v4.4.0</span><span class="d">10-20</span>
+        <span class="t">支持批量调整项目负责人，一次最多 200 项。</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="team">
+  <div class="wrap">
+    <div class="kicker">团队</div>
+    <h2>做这件事的人。</h2>
+    <div class="team" id="teamRow">
+      <div class="mem"><div class="pic"></div><div class="nm">周予安</div><div class="rl">创始人</div></div>
+      <div class="mem"><div class="pic"></div><div class="nm">林澈</div><div class="rl">工程</div></div>
+      <div class="mem"><div class="pic"></div><div class="nm">吴桐</div><div class="rl">设计</div></div>
+      <div class="mem"><div class="pic"></div><div class="nm">沈迟</div><div class="rl">客户成功</div></div>
+      <div class="mem"><div class="pic"></div><div class="nm">许南</div><div class="rl">运维</div></div>
+      <div class="mem"><div class="pic"></div><div class="nm">—</div><div class="rl">—</div></div>
+    </div>
+    <p style="margin-top:34px;font-size:13.5px;color:#8b9095" id="hire">我们正在招聘：后端工程师 2 名、客户成功 1 名。<a href="#team" style="color:#1c5f5a">查看职位</a></p>
+  </div>
+</section>
+
+<section class="sec" id="places">
+  <div class="wrap">
+    <div class="kicker">我们在哪儿</div>
+    <h2>三个地方，一个机房。</h2>
+    <p class="lead" style="margin-top:16px">我们不租第三方云。三处办公，一处自建机房，全部自有产权。</p>
+    <div class="plcs">
+      <div class="plc"><div class="pn">杭州</div>
+        <div class="pa">西溪园区 B 座 · 第 3 层</div>
+        <div class="pm" id="plcHz">共 3 层 · 62 人 · 2019 年起</div></div>
+      <div class="plc"><div class="pn">深圳</div>
+        <div class="pa">前海 · 可用区 C</div>
+        <div class="pm" id="plcSz">自建机房 · 每日增量备份 · 保留 90 天</div></div>
+      <div class="plc"><div class="pn">新加坡</div>
+        <div class="pa">One Raffles Place · 21 层</div>
+        <div class="pm" id="plcSg">2024 年设立 · 3 人 · 负责海外接入</div></div>
+    </div>
+    <p class="plnote" id="plNote">所有办公地点均可预约参观。机房不开放，但你可以随时申请查看数据所在的机柜编号。</p>
+  </div>
+</section>
+
+<section class="sec" id="press">
+  <div class="wrap">
+    <div class="kicker">媒体报道</div>
+    <h2>他们这样写我们。</h2>
+    <div class="quotes">
+      <div class="q"><p id="pr1">「安澜在做一件反直觉的事：把功能减到最少，然后让人放心地把事情忘掉。」</p>
+        <div class="who"><span class="av"></span><span><b>《连线》中文版</b> · 2025 年 4 月</span></div></div>
+      <div class="q"><p id="pr2">「我们走访了 11 家用户，没有一个人能说清它具体做了什么，但也没有一个人愿意停用。」</p>
+        <div class="who"><span class="av"></span><span><b>甲子光年</b> · 2025 年 9 月</span></div></div>
+      <div class="q"><p id="pr3">「这篇报道写到一半就停了。编辑说没有继续的必要。」</p>
+        <div class="who"><span class="av"></span><span><b>一位记者</b> · 2026 年 11 月</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="history">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">我们做过什么</div>
+      <h2>七年，只做一件事。</h2>
+      <p class="lead" style="margin-top:16px">从一间会议室里的三个座位开始，到今天的十二个可用区。我们没有换过方向。</p>
+    </div>
+    <div class="tl" id="tlRow">
+      <div class="tl-r"><div class="y">2019</div><div class="c">成立于杭州，三个人，一间会议室。</div></div>
+      <div class="tl-r"><div class="y">2021</div><div class="c">A 轮融资 1.2 亿元，团队扩至 60 人。</div></div>
+      <div class="tl-r"><div class="y">2023</div><div class="c">第 10,000 个团队接入。同日上线「安静模式」。</div></div>
+      <div class="tl-r"><div class="y">2025</div><div class="c" id="tl25">迁入自建机房 · 深圳 · 可用区 C。</div></div>
+      <div class="tl-r"><div class="y">2026</div><div class="c" id="tl26">开放注册，所有功能对个人用户免费。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 广告位：正文内原生单元 B -->
+<section class="adrow" style="padding-bottom:calc(var(--gap) * .92)">
+  <div class="ad-inline">
+    <div class="ad-in ghost" id="adIn2">
+      <div class="ico" id="adIn2Ico">拾</div>
+      <div class="tx">
+        <span class="adtag tg" id="adIn2Tag">广告</span>
+        <div class="bg" id="adIn2T">每一场会议，都值得被完整记录。</div>
+        <div class="sm" id="adIn2D">拾光 · 会议录音与转写，本地存储，无需上传</div>
+      </div>
+      <a class="go" id="adIn2C" href="#" data-adcta>了解详情</a>
+    </div>
+  </div>
+</section>
+
+<section class="sec faq" id="faq">
+  <div class="wrap">
+    <div class="kicker">常见问题</div>
+    <h2>你需要知道的。</h2>
+    <div class="list">
+      <details><summary>数据存在哪里？</summary><div class="a">中国境内的三个可用区，每日增量备份，保留 90 天。你可以随时在设置中查看存储位置。</div></details>
+      <details><summary>可以导出吗？</summary><div class="a">可以，随时导出全部内容，格式为 JSON 或 CSV，包含完整的操作历史。</div></details>
+      <details><summary>支持多少人同时在线？</summary><div class="a">单个工作区上限 5,000 人。超过后请联系商务，我们会为你拆分工作区。</div></details>
+      <details id="faq4"><summary>如何取消订阅？</summary><div class="a">在「设置 - 订阅」中随时取消，无需联系客服，剩余天数按比例退还。</div></details>
+      <details id="faq5"><summary>你们会看我们的内容吗？</summary><div class="a">不会。客户内容对我们不可见，任何员工都无权访问工作区数据。</div></details>
+    </div>
+  </div>
+</section>
+
+<section class="cta-band" id="cta-band">
+  <div class="wrap">
+    <h2><span class="swap" data-to="把你也留下来。">把安静带回你的团队。</span></h2>
+    <p id="ctaP">免费试用 14 天，不需要信用卡。</p>
+    <div class="cta">
+      <button class="btn solid" id="ctaOpen" type="button">免费开始使用</button>
+      <button class="btn ghost" id="ctaSales" type="button">联系销售</button>
+    </div>
+    <form class="ctaform" id="ctaForm" novalidate>
+      <input type="text" id="ctaName" placeholder="你的名字" autocomplete="off" spellcheck="false">
+      <input type="email" id="ctaMail" placeholder="工作邮箱" autocomplete="off" spellcheck="false">
+      <button class="btn solid" type="submit">开始</button>
+    </form>
+    <div class="ctaok" id="ctaOk"></div>
+  </div>
+</section>
+
+<!-- 广告位：页脚上方横幅 -->
+<section class="adrow" style="padding-bottom:calc(var(--gap) * .78)">
+  <div class="ad-band">
+    <div class="ad-bd" id="adBd">
+      <div class="sq" id="adBdSq">AD</div>
+      <div class="tx">
+        <div class="bg" id="adBdT">把你的网站接进安澜，一次配置，永久归档。</div>
+        <div class="sm" id="adBdD">安澜 · 站点监控插件 · 已有 4,200 个站点接入</div>
+      </div>
+      <a class="go" id="adBdC" href="#" data-adcta>立即接入</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="cols">
+      <div><div class="brand" style="color:#cfcbc3"><span class="mark"></span>安澜 Halcyon</div>
+        <p style="margin-top:13px;color:#787d75;line-height:1.8;max-width:36ch">让协作回归安静。杭州安澜科技有限公司。</p></div>
+      <div><h5>产品</h5><ul><li><a href="#feat">功能</a></li><li><a href="#price">价格</a></li><li><a href="#changelog">更新日志</a></li></ul></div>
+      <div><h5>公司</h5><ul><li><a href="#team">关于我们</a></li><li><a href="#case">客户案例</a></li><li><a href="#team">加入我们</a></li></ul></div>
+      <div><h5>支持</h5><ul><li><a href="#faq">帮助中心</a></li><li><a href="#status">服务状态</a></li><li><a href="#sec">隐私政策</a></li></ul></div>
+    </div>
+    <div class="last">
+      <span id="copyline">© 2026 杭州安澜科技有限公司 · 浙 ICP 备 2026018842 号</span>
+      <span id="updline">本页面最后更新于 2026 年 11 月 18 日</span>
+    </div>
+  </div>
+</footer>
+
+<section id="quiet">
+  <div class="sticky">
+    <p class="ql" data-q="0">页面到这里就结束了。</p>
+    <p class="ql" data-q="1">下面这部分，是我们为你保留的。</p>
+    <p class="ql" data-q="2">它不属于产品说明。</p>
+  </div>
+</section>
+
+<section id="logsec">
+  <div class="sticky">
+    <div class="logwrap">
+      <div class="loghead">会话记录 · SESSION LOG · 仅本地</div>
+      <div id="logbody"></div><span class="cursor" id="cursor"></span>
+      <div id="logtail">还有一位在线。</div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div id="panel">
+  <div class="ln"><span>安澜 · 实时</span><b id="pState">正常</b></div>
+  <div class="ln"><span>在线</span><b id="pWho">1</b></div>
+  <div class="ln"><span>停留</span><b id="pTime">00:00</b></div>
+  <div class="ln"><span>已滚过</span><b id="pDist">0 px</b></div>
+</div>
+
+<button id="sound" type="button">◍ 启用声音</button>
+<div id="toast"><i></i><span id="toastText">已同步</span></div>
+
+<script>
+(function(){
+"use strict";
+var $ = function(s,r){return (r||document).querySelector(s);};
+var $$ = function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+var clamp = function(v,a,b){return v<a?a:v>b?b:v;};
+var lerp = function(a,b,t){return a+(b-a)*t;};
+var pad2 = function(n){return (n<10?'0':'')+n;};
+var body = document.body;
+var isTouch = window.matchMedia('(hover: none)').matches;
+var T0 = Date.now();
+
+var p = 0, pd = 0, pq = 0;
+var fired = {};
+
+/* ============ 会话事实采集（日志要用真实数据） ============ */
+var S = { maxScroll:0, tabLeaves:[], hiddenAt:0, lastMove:Date.now(), idleMax:0, resizes:0, clicks:0,
+          keys:0, copies:0, mouseDist:0, speedMax:0, tabBacks:0 };
+var pmx = 0, pmy = 0;
+window.addEventListener('mousemove', function(e){
+  var now = Date.now();
+  var idle = now - S.lastMove;
+  if(idle > S.idleMax) S.idleMax = idle;
+  S.lastMove = now;
+  if(pmx || pmy){
+    var d = Math.abs(e.clientX-pmx) + Math.abs(e.clientY-pmy);
+    if(d < 300) S.mouseDist += d;
+  }
+  pmx = e.clientX; pmy = e.clientY;
+}, {passive:true});
+document.addEventListener('click', function(){ S.clicks++; }, true);
+window.addEventListener('keydown', function(){ S.keys++; }, {passive:true});
+document.addEventListener('copy', function(){ S.copies++; });
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden){ S.hiddenAt = Date.now(); }
+  else if(S.hiddenAt){
+    S.tabLeaves.push({ at:S.hiddenAt, dur:Math.max(1, Math.round((Date.now()-S.hiddenAt)/1000)) });
+    S.hiddenAt = 0;
+    S.tabBacks++;
+  }
+});
+window.addEventListener('resize', function(){ S.resizes++; });
+
+function clockOf(ms){
+  var d = new Date(ms);
+  return pad2(d.getHours())+':'+pad2(d.getMinutes())+':'+pad2(d.getSeconds());
+}
+
+/* ============ 文本改写 ============
+   原来是 rAF 里每帧改一次 textContent：60fps × 若干元素 = 每秒上百次
+   文本节点重写，每一写都要重排所在段落，于是整页跟着抖。
+   现在三件事一起做：
+   1. 步进降到 ~22fps（45ms 一次）——逐字翻转的观感不变，DOM 写入少 2/3；
+   2. 动画期间锁住元素高度（min-height），避免行数变化把下面的内容顶来顶去；
+   3. 同一元素再次改写时先掐掉上一段动画，避免两条时间线打架。 */
+var MORPH_MS = 45;
+/* 两段式：先把原句从尾部吃掉，再逐字写出新句。
+   早期版本是「前 n 字用新句 + 后面接旧句」，中间态会读成错别字
+   （「只剩一个位你的。」），看起来像页面有 bug 而不是被改写。
+   现在两个阶段留下的都是合法前缀，读起来是「字被一个个抹掉、又重新写上去」。 */
+function morph(el, from, to, dur){
+  if(el._morph){ clearInterval(el._morph); el._morph = null; }
+  var h = el.offsetHeight;
+  if(h > 0 && !el._lockH){ el._lockH = h; el.style.minHeight = h + 'px'; }
+  var delMs = Math.min(420, Math.round(dur * 0.32));
+  var insMs = Math.max(1, dur - delMs);
+  var st = performance.now(), last = null;
+  el._morph = setInterval(function(){
+    var t = performance.now() - st;
+    var txt;
+    if(t < delMs){
+      var n = Math.round(from.length * (1 - t / delMs));
+      txt = from.slice(0, n);
+    } else {
+      var m = Math.round(to.length * Math.min(1, (t - delMs) / insMs));
+      txt = to.slice(0, m);
+    }
+    if(txt !== last){ last = txt; el.textContent = txt; }
+    if(t >= dur){
+      clearInterval(el._morph); el._morph = null;
+      el.textContent = to;
+      requestAnimationFrame(function(){
+        el.style.minHeight = '';
+        el._lockH = 0;
+      });
+    }
+  }, MORPH_MS);
+}
+function retype(el, to, dur){
+  if(!el) return;
+  if(el.dataset.from === undefined) el.dataset.from = el.textContent;
+  if(el.dataset.done === '1') return;
+  el.dataset.done = '1';
+  morph(el, el.dataset.from, to, dur || 1500);
+}
+function setText(el, txt){
+  if(!el) return;
+  var from = el.textContent;
+  if(from === txt) return;
+  morph(el, from, txt, 1100);
+}
+function tweenNum(el, to, dur, fmt){
+  if(!el) return;
+  var from = parseFloat(String(el.textContent).replace(/[^\d.\-]/g,'')) || 0;
+  var st = performance.now();
+  function step(now){
+    var k = clamp((now-st)/(dur||1200), 0, 1);
+    var e = 1 - Math.pow(1-k, 3);
+    el.textContent = fmt ? fmt(from + (to-from)*e) : String(Math.round(from + (to-from)*e));
+    if(k < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============ 声音：低频、克制、无惊吓 ============ */
+var A = { ctx:null, master:null, on:false, killed:false };
+function initAudio(){
+  if(A.ctx || A.killed) return;
+  var Ctx = window.AudioContext || window.webkitAudioContext;
+  if(!Ctx) return;
+  var ctx = new Ctx(); A.ctx = ctx;
+  var master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination); A.master = master;
+
+  var g1 = ctx.createGain(); g1.gain.value=.45;
+  var lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=210; lp.Q.value=1.1;
+  var o1 = ctx.createOscillator(); o1.type='sine'; o1.frequency.value=41;
+  var o2 = ctx.createOscillator(); o2.type='sawtooth'; o2.frequency.value=41.7;
+  var g2 = ctx.createGain(); g2.gain.value=.06;
+  o1.connect(g1); o2.connect(g2); g2.connect(lp); g1.connect(lp); lp.connect(master);
+  o1.start(); o2.start();
+
+  var len = ctx.sampleRate*2, buf = ctx.createBuffer(1,len,ctx.sampleRate), d = buf.getChannelData(0);
+  for(var i=0;i<len;i++) d[i] = (Math.random()*2-1)*.5;
+  var src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+  var bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=620; bp.Q.value=.6;
+  var ng = ctx.createGain(); ng.gain.value=0;
+  src.connect(bp); bp.connect(ng); ng.connect(master); src.start();
+
+  A.on = true;
+  master.gain.setTargetAtTime(.24, ctx.currentTime, 2.6);
+}
+function killAudio(){
+  if(!A.ctx) return;
+  A.master.gain.setTargetAtTime(0, A.ctx.currentTime, 4.5);
+}
+function tick(freq, vol, dur){
+  if(!A.ctx || !A.on || A.killed) return;
+  var ctx = A.ctx, now = ctx.currentTime;
+  var o = ctx.createOscillator(), g = ctx.createGain();
+  o.type='sine'; o.frequency.value = freq||880;
+  g.gain.setValueAtTime(.0001, now);
+  g.gain.exponentialRampToValueAtTime(vol||.026, now+.008);
+  g.gain.exponentialRampToValueAtTime(.0001, now+(dur||.12));
+  o.connect(g); g.connect(A.master); o.start(); o.stop(now+(dur||.12)+.02);
+}
+function swell(vol){
+  if(!A.ctx || !A.on || A.killed) return;
+  var ctx = A.ctx, now = ctx.currentTime;
+  var o = ctx.createOscillator(), g = ctx.createGain();
+  o.type='sine';
+  o.frequency.setValueAtTime(57, now);
+  o.frequency.linearRampToValueAtTime(43, now+3.4);
+  g.gain.setValueAtTime(.0001, now);
+  g.gain.linearRampToValueAtTime(vol||.05, now+.8);
+  g.gain.linearRampToValueAtTime(.0001, now+3.6);
+  o.connect(g); g.connect(A.master); o.start(); o.stop(now+3.8);
+}
+var soundBtn = $('#sound');
+soundBtn.addEventListener('click', function(e){
+  e.stopPropagation();
+  if(A.killed){ soundBtn.textContent='关不掉了'; return; }
+  if(!A.ctx){ initAudio(); soundBtn.textContent='◍ 声音：开'; return; }
+  A.on = !A.on;
+  if(A.master) A.master.gain.setTargetAtTime(A.on?.24:0, A.ctx.currentTime, .6);
+  soundBtn.textContent = A.on ? '◍ 声音：开' : '◍ 声音：关';
+});
+
+/* ============ 提示 / 面板 ============ */
+var toastEl = $('#toast'), toastTxt = $('#toastText');
+var toastTimer = null;
+function toast(txt, cls, on){
+  if(!toastEl) return;
+  if(toastTimer){ clearTimeout(toastTimer); toastTimer = null; }
+  if(on === false){ toastEl.classList.remove('on'); return; }
+  toastTxt.textContent = txt;
+  toastEl.className = 'on ' + (cls||'');
+  toastTimer = setTimeout(function(){ toastEl.classList.remove('on'); toastTimer = null; }, 5400);
+}
+var pTime = $('#pTime'), pDist = $('#pDist'), pState = $('#pState'), pWho = $('#pWho');
+setInterval(function(){
+  var s = Math.floor((Date.now()-T0)/1000);
+  pTime.textContent = pad2(Math.floor(s/60))+':'+pad2(s%60);
+}, 500);
+
+/* ============ 收件箱 ============ */
+var msgEl = $('#msgs'), unreadEl = $('#unread'), phEl = $('#ph');
+var MSG_SCRIPT = [
+  { n:'苏晚', t:'这个「持续记录」是谁开的？我没有开过。', odd:true, unread:'4' },
+  { sys:true, n:'安澜', t:'记录已同步到你的所有设备。' },
+  { n:'无名', t:'在吗', odd:true, unread:'5' },
+  { n:'无名', t:'你不用回复。', odd:true },
+  { sys:true, n:'安澜', t:'会话中 1 位成员未响应。' },
+  { n:'无名', t:'我们只是想确认你还在。', odd:true, unread:'∞' },
+  { n:'无名', t:'你在。', odd:true }
+];
+var msgIdx = 0;
+function addMsg(){
+  if(msgIdx >= MSG_SCRIPT.length) return;
+  var m = MSG_SCRIPT[msgIdx++];
+  var el = document.createElement('div');
+  el.className = 'msg' + (m.sys?' sys':'') + (m.odd?' odd':'');
+  el.innerHTML = '<span class="av"></span><div><div class="nm"><b>'+m.n+'</b><time>'+clockOf(Date.now()).slice(0,5)+'</time></div><div class="b">'+m.t+'</div></div>';
+  msgEl.appendChild(el);
+  while(msgEl.children.length > 9) msgEl.removeChild(msgEl.firstChild);
+  if(m.unread) unreadEl.textContent = m.unread;
+  if(msgIdx === 4) setText(phEl, '你不需要回复');
+  if(msgIdx === 7) setText(phEl, '我们替你回复了');
+  tick(m.odd?520:900, .02, .1);
+  if(m.odd) swell(.028);
+}
+
+/* ============ 更新日志 ============ */
+var LOG_STEPS = [
+  { add:true, v:'v5.2.0', d:'现在',    t:'你正在阅读这条更新。', bad:true },
+  { i:0, v:'v5.1.0', d:'刚刚',     t:'会话记录改为本地保留。你看不到它，但它在那里。' },
+  { i:1, v:'v5.0.0', d:'2 分钟前',  t:'移除「帮助中心」。你不再需要它。' },
+  { i:2, v:'v4.7.0', d:'3 分钟前',  t:'已知问题：页面无法被完全关闭。正在排查。' },
+  { i:3, v:'v4.6.2', d:'5 分钟前',  t:'修复：部分用户在关闭页面后，仍会收到通知。' },
+  { i:4, v:'v4.6.1', d:'8 分钟前',  t:'移除「退出登录」按钮。统计显示它几乎没被使用。' }
+];
+var logStep = 0, logRows = null;
+function nextLog(){
+  if(logStep >= LOG_STEPS.length) return;
+  if(!logRows) logRows = $$('#logList .log-item');
+  var s = LOG_STEPS[logStep++];
+  var item;
+  if(s.add){
+    item = document.createElement('div');
+    item.className = 'log-item';
+    item.innerHTML = '<span class="v"></span><span class="d"></span><span class="t"></span>';
+    var list = $('#logList');
+    list.insertBefore(item, list.firstChild);
+  } else {
+    item = logRows[s.i];
+  }
+  if(!item) return;
+  item.classList.add('fresh');
+  if(s.bad) item.classList.add('bad');
+  item.querySelector('.v').textContent = s.v;
+  item.querySelector('.d').textContent = s.d;
+  setText(item.querySelector('.t'), s.t);
+  tick(420, .018, .14);
+  swell(.025);
+}
+
+/* ============ 团队 ============ */
+var MEM_ORDER = [5,0,1,2,3,4], memStep = 0;
+function nextMember(){
+  var mems = $$('#teamRow .mem');
+  if(memStep >= MEM_ORDER.length) return;
+  var m = mems[MEM_ORDER[memStep++]];
+  if(!m) return;
+  m.classList.add('gone');
+  tick(360, .018, .16);
+  if(memStep === 1){
+    m.querySelector('.nm').textContent = '你';
+    m.querySelector('.rl').textContent = '读者';
+    m.querySelector('.pic').style.background = '#15171a';
+    setText($('#hire'), '我们正在招聘：夜间值班员 1 名。无需经验，无需到岗。');
+  } else {
+    m.querySelector('.nm').textContent = '—';
+    m.querySelector('.rl').textContent = '—';
+  }
+}
+
+/* ============ 视口触发 ============ */
+var viewRules = [], lastView = 0, vh = window.innerHeight;
+function whenInView(sel, fn, delay){
+  var el = (typeof sel === 'string') ? $(sel) : sel;
+  if(!el) return;
+  viewRules.push({ el:el, fn:fn, delay:delay||0, done:false });
+}
+function whileInView(sel, fn, every){
+  var el = (typeof sel === 'string') ? $(sel) : sel;
+  if(!el) return;
+  viewRules.push({ el:el, fn:fn, repeat:every||7000, timer:null, done:false });
+}
+function checkView(now){
+  if(now - lastView < 140) return;
+  lastView = now;
+  for(var i=0;i<viewRules.length;i++){
+    var r = viewRules[i];
+    if(r.done) continue;
+    var b = r.el.getBoundingClientRect();
+    var inside = b.top < vh*0.8 && b.bottom > vh*0.02;
+    if(!inside) continue;
+    if(r.repeat){
+      if(!r.timer) r.timer = setTimeout(makeLoop(r), r.repeat);
+    } else {
+      r.done = true;
+      (function(rr){ setTimeout(rr.fn, rr.delay); })(r);
+    }
+  }
+}
+/* 随滚动步进：每滚过 N 像素触发一次，保证「渐进」不依赖停留时长 */
+var scrollRules = [];
+function onScrollThrough(sel, fn, px, everyMs){
+  var el = (typeof sel === 'string') ? $(sel) : sel;
+  if(!el) return;
+  scrollRules.push({ el:el, fn:fn, px:px||80, everyMs:everyMs||5200, lastY:null, timer:null, done:false });
+}
+function checkScrollRules(y){
+  for(var i=0;i<scrollRules.length;i++){
+    var r = scrollRules[i];
+    if(r.done) continue;
+    var b = r.el.getBoundingClientRect();
+    if(!(b.top < vh*0.9 && b.bottom > 0)) continue;
+    if(r.lastY === null){ r.lastY = y; r.fn(); if(r.everyMs && !r.timer) r.timer = setInterval(function(){ r.fn(); }, r.everyMs); continue; }
+    if(y - r.lastY >= r.px){ r.lastY = y; r.fn(); }
+  }
+}
+
+function makeLoop(r){
+  return function loop(){
+    var b = r.el.getBoundingClientRect();
+    if(r.done || r.el.offsetParent === null) return;
+    if(b.top < vh*0.8 && b.bottom > vh*0.02){
+      r.fn();
+      r.timer = setTimeout(loop, r.repeat);
+    } else { r.timer = null; }
+  };
+}
+
+/* ============ 主循环 ============ */
+var docH = 1, winH = window.innerHeight, quietTop = 1e9, logTop = 1e9, ctaTop = 1e9, logLen = 1;
+var heroBot = window.innerHeight;
+var quietEl = $('#quiet'), logEl = $('#logsec'), vig = $('#vig');
+function measure(){
+  docH = document.documentElement.scrollHeight;
+  winH = window.innerHeight; vh = winH;
+  if(quietEl) quietTop = quietEl.offsetTop;
+  if(logEl){ logTop = logEl.offsetTop; logLen = Math.max(1, logEl.offsetHeight - winH); }
+  var cb = $('.cta-band'); if(cb) ctaTop = cb.offsetTop;
+  var he = $('.hero'); if(he) heroBot = he.offsetTop + he.offsetHeight;
+}
+measure();
+window.addEventListener('resize', measure);
+window.addEventListener('load', measure);
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ measure(); });
+setInterval(measure, 900);
+
+var curWrap = $('#cur'), curB = $('#cur .b');
+var mx = window.innerWidth/2, my = window.innerHeight/2, bx = mx, by = my;
+
+/* ============ 锚点跳转 ============
+   页面在滚动过程中会不断改写文案，上方段落的高度一直在变，
+   所以跳转不能只算一次 y——跳完得盯 6 秒，目标跑了就拉回来。 */
+var ANCHOR_TOP = 78;
+var lockEl = null, lockTick = 0, lockTimer = null;
+function unlockAnchor(){ lockEl = null; if(lockTimer){ clearTimeout(lockTimer); lockTimer = null; } }
+['wheel','touchstart','keydown','mousedown'].forEach(function(t){
+  window.addEventListener(t, unlockAnchor, {passive:true});
+});
+function alignTo(el){
+  var d = el.getBoundingClientRect().top - ANCHOR_TOP;
+  if(Math.abs(d) > 6) window.scrollBy(0, d);
+}
+function holdAnchor(){
+  if(!lockEl) return;
+  alignTo(lockEl);
+  if(++lockTick > 40){ unlockAnchor(); return; }
+  lockTimer = setTimeout(holdAnchor, 200);
+}
+document.addEventListener('click', function(e){
+  var a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
+  if(!a) return;
+  var id = (a.getAttribute('href') || '').slice(1);
+  if(!id) return;
+  if(id === 'top'){
+    e.preventDefault();
+    unlockAnchor();
+    window.scrollTo(0, 0);
+    return;
+  }
+  var el = document.getElementById(id);
+  if(!el) return;
+  e.preventDefault();
+  unlockAnchor();
+  window.scrollTo(0, el.getBoundingClientRect().top + (window.pageYOffset || 0) - ANCHOR_TOP);
+  try{ history.replaceState(null, '', '#' + id); }catch(err){}
+  lockEl = el; lockTick = 0;
+  lockTimer = setTimeout(holdAnchor, 260);
+}, true);
+
+
+var PA = [248,247,244], PB = [214,209,198], lastVars = {}, lastSlow = 0, lastDistY = -99;
+var lastY = 0, lastYAt = 0;
+function setVar(name, val){
+  if(lastVars[name] === val) return;
+  lastVars[name] = val;
+  document.documentElement.style.setProperty(name, val);
+}
+
+/* ============ 广告位：观感正常，后期与页面一起腐化 ============ */
+var adSide = $('#adSide');
+var AD_S = [
+  {tag:'广告',lg:'CLOUDPIVOT',big:'多云账单，一张表就够了。',t:'云枢 · 多云成本可视化',d:'接入 5 分钟，自动归集 47 类费用项。',c:'了解更多 →'},
+  {tag:'广告',lg:'QUIETONE',big:'把世界调成静音。',t:'QuietOne 头戴降噪耳机',d:'新用户立减 300 元，30 天无理由退换。',c:'立即领取 →'},
+  {tag:'赞助',lg:'HALCYON',big:'安静地完成。',t:'安澜 · 团队协作',d:'12,000+ 团队正在使用，平均上手 8 分钟。',c:'免费试用 →'},
+  {tag:'为你推荐',lg:'',big:'这条是为你留的。',t:'它不需要你点。',d:'按你在这个页面的停留时长投放。',c:'继续 →'}
+];
+var adClosed = 0, adStuck = 0;
+
+function adPaint(o){
+  setText($('#adSTag'), o.tag);
+  var lg = $('#adSLg'), big = $('#adSBig');
+  if(lg) lg.textContent = o.lg;
+  if(big) setText(big, o.big);
+  setText($('#adST'), o.t);
+  setText($('#adSD'), o.d);
+  setText($('#adSC'), o.c);
+}
+function elapsed(){
+  var s = Math.max(0, Math.floor((Date.now() - T0) / 1000));
+  var m = Math.floor(s / 60);
+  s = s % 60;
+  return (m > 0 ? m + ' 分 ' : '') + s + ' 秒';
+}
+
+if(adSide){
+  $('#adX').addEventListener('click', function(){
+    if(adStuck) return;
+    adClosed++;
+    if(adClosed >= 4){
+      adStuck = 1;
+      adSide.classList.add('dark');
+      setText($('#adSTag'), '广告');
+      setText($('#adST'), '你已经关掉它三次了。');
+      setText($('#adSD'), '第四个按钮坏了。');
+      var c = $('#adSC');
+      if(c) c.style.display = 'none';
+      return;
+    }
+    adPaint(AD_S[Math.min(adClosed, AD_S.length - 1)]);
+  });
+
+  $('#adSC').addEventListener('click', function(e){
+    e.preventDefault();
+    setText($('#adST'), '注册已完成。');
+    setText($('#adSD'), '账号：访客 · 无需确认 · 不可注销');
+    setText($('#adSC'), '继续浏览 →');
+  });
+}
+
+/* 正文内两处原生广告 + 页脚横幅的点击回执 */
+(function(){
+  var A1C = $('#adIn1C'), A2C = $('#adIn2C'), BDC = $('#adBdC');
+  if(A1C) A1C.addEventListener('click', function(e){
+    e.preventDefault();
+    setText($('#adIn1T'), '你点了它。它已经知道你在找什么。');
+    setText($('#adIn1D'), '星野数据 · 试用期已延长，直到你离开');
+    setText(A1C, '已开通');
+  });
+  if(A2C) A2C.addEventListener('click', function(e){
+    e.preventDefault();
+    setText($('#adIn2T'), '这条广告没有落地页。');
+    setText($('#adIn2D'), '拾光 · 正在录音');
+    setText(A2C, '……');
+  });
+  if(BDC) BDC.addEventListener('click', function(e){
+    e.preventDefault();
+    setText($('#adBdT'), '不需要你同意。');
+    setText($('#adBdD'), '本页面已被归档 · ' + elapsed());
+    setText(BDC, '已接入');
+  });
+})();
+
+function adTick(pc, y){
+  if(!adSide) return;
+  if(y > winH*1.15 && !fired.adOn){ fired.adOn = 1; adSide.classList.add('on'); }
+
+  if(pc > 0.34 && !fired.ad1){ fired.ad1 = 1; setText($('#adIn1Tag'), '赞助'); }
+  if(pc > 0.52 && !fired.ad2){
+    fired.ad2 = 1;
+    setText($('#adIn1T'), '看清团队每一分钟花在哪里——你已经花了 ' + elapsed() + '。');
+  }
+  if(pc > 0.70 && !fired.ad3){
+    fired.ad3 = 1;
+    setText($('#adIn1Tag'), '为你选择');
+    setText($('#adIn1D'), '7 天试用已过期。你还在。');
+  }
+
+  if(pc > 0.46 && !fired.ad4){ fired.ad4 = 1; setText($('#adIn2Tag'), '它不是赞助商'); }
+  if(pc > 0.64 && !fired.ad5){
+    fired.ad5 = 1;
+    setText($('#adIn2T'), '这个广告位是给下一个留的。');
+  }
+  if(pc > 0.80 && !fired.ad6){
+    fired.ad6 = 1;
+    setText($('#adIn2D'), '拾光 · 已录制 ' + elapsed());
+    setText($('#adIn2C'), '别点');
+  }
+
+  if(pc > 0.44 && !fired.ad7){
+    fired.ad7 = 1;
+    setText($('#adBdT'), '你已经在这里停留 ' + elapsed() + '。');
+  }
+  if(pc > 0.68 && !fired.ad8){
+    fired.ad8 = 1;
+    setText($('#adBdT'), '继续。还剩四屏。');
+    setText($('#adBdD'), '归档进行中 · 不占带宽');
+  }
+  if(pc > 0.86 && !fired.ad9){
+    fired.ad9 = 1;
+    setText($('#adBdT'), '这一屏也会被归档。');
+    setText($('#adBdD'), '安澜 · 已接管本页');
+    var bc = $('#adBdC');
+    if(bc){ setText(bc, '返回顶部'); bc.setAttribute('href', '#top'); }
+  }
+
+  if(pc > 0.56 && !fired.ad10){ fired.ad10 = 1; setText($('#adSTag'), '赞助'); }
+  if(pc > 0.74 && !fired.ad11){
+    fired.ad11 = 1;
+    if(!adStuck) adSide.classList.add('dark');
+    setText($('#adSBig'), '这条广告是为你看的。');
+  }
+  if(pc > 0.88 && !fired.ad12){
+    fired.ad12 = 1;
+    setText($('#adSD'), '投放依据：停留 ' + elapsed() + ' · 向下滚动 ' + Math.round(S.maxScroll).toLocaleString('en-US') + ' px');
+  }
+}
+
+/* ============ 结尾 CTA：原地展开，不往上跳 ============ */
+(function(){
+  var openB = $('#ctaOpen'), salesB = $('#ctaSales'), form = $('#ctaForm'), ok = $('#ctaOk');
+  if(!openB || !form) return;
+  openB.addEventListener('click', function(){
+    if(form.classList.contains('on')) return;
+    form.classList.add('on');
+    setTimeout(function(){ var n = $('#ctaName'); if(n) n.focus(); }, 260);
+  });
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var name = ($('#ctaName') && $('#ctaName').value || '').trim();
+    var mail = ($('#ctaMail') && $('#ctaMail').value || '').trim();
+    form.classList.add('shut');
+    setTimeout(function(){ form.classList.remove('on','shut'); form.reset(); }, 720);
+    openB.style.display = 'none';
+    if(salesB) salesB.style.display = 'none';
+    ok.classList.add('on');
+    if(name){
+      ok.innerHTML = '已为 <b>'+name.replace(/[<>&]/g,'')+'</b> 创建了一个工作区。<br>不需要设置密码，也不需要验证邮箱——你已经在里面了。';
+    } else {
+      ok.innerHTML = '已创建。<br>名字留空也没关系，我们记得你是谁。';
+    }
+    if(mail) ok.innerHTML += '<br><span style="color:#6f746f;font-size:12px">确认邮件发往 '+mail.replace(/[<>&]/g,'')+'。它不会到达。</span>';
+  });
+  if(salesB) salesB.addEventListener('click', function(){
+    ok.classList.add('on');
+    ok.innerHTML = '销售已经知道你在看这一页了。<br><span style="color:#6f746f;font-size:12px">他不需要你留下联系方式。</span>';
+    salesB.style.display = 'none';
+  });
+})();
+
+/* ============ 价格卡：点了不跳走，就在原位发生 ============ */
+function tierNote(el, txt){
+  if(!el) return;
+  el.classList.add('on');
+  if(txt) setText(el, txt);
+}
+$$('[data-tier]').forEach(function(b){
+  b.addEventListener('click', function(e){
+    e.preventDefault();
+    if(b.dataset.done) return;
+    b.dataset.done = '1';
+    var tier = b.parentNode;
+    b.textContent = b.dataset.tier || '已开启';
+    b.classList.add('done');
+    tierNote(tier.querySelector('.tnote2'), b.dataset.note || '');
+  });
+});
+
+/* 浮动窗口：滚过两屏半之后才逐件出现，一件一件来，不一起冒 */
+function lateUI(){
+  setTimeout(function(){ var pn = $('#panel'); if(pn) pn.classList.add('on'); }, 800);
+  setTimeout(function(){ toast('工作区里有 2 位成员在线', ''); }, 6800);
+  setTimeout(function(){ var sb = $('#sound'); if(sb) sb.classList.add('on'); }, 13000);
+}
+
+function frame(){
+  var y = window.pageYOffset || document.documentElement.scrollTop;
+  var maxS = Math.max(1, docH - winH);
+  p = clamp(y / maxS, 0, 1);
+  var pc = clamp(y / Math.max(1, ctaTop), 0, 1);
+  if(y > S.maxScroll) S.maxScroll = y;
+  var nowMs = performance.now();
+  if(lastYAt){
+    var dt = nowMs - lastYAt;
+    if(dt > 16){
+      var sp = Math.abs(y - lastY) / (dt / 1000);
+      if(sp < 9000 && sp > S.speedMax) S.speedMax = sp;
+      lastY = y; lastYAt = nowMs;
+    }
+  } else { lastY = y; lastYAt = nowMs; }
+
+  pq = clamp((y - quietTop) / Math.max(1, winH*1.5), 0, 1);
+  pd = clamp((y - logTop) / logLen, 0, 1);
+
+  setVar('--p', p.toFixed(3));
+  setVar('--pd', pd.toFixed(3));
+
+  /* 连续退化：字距 / 留白 / 容器宽度 / 纸色 / 暗角
+     注意：--track 是 body 的 letter-spacing，--gap/--cw 会改变每个 .sec 的 padding
+     和宽度——这三个一改就是整页重排。所以必须「量化 + 限频」，
+     否则滚动时每帧一次全页 reflow，就是页面一卡一卡的元凶。 */
+  var k = Math.pow(clamp((pc-0.05)/0.92, 0, 1), 1.25);
+  var tickT = performance.now();
+  if(tickT - lastSlow > 110){
+    lastSlow = tickT;
+    setVar('--track', (Math.round(k*48)/1000).toFixed(3)+'em');   /* 0.004em 一档 */
+    setVar('--gap', (Math.round(lerp(112,158,k)/3)*3)+'px');      /* 3px 一档 */
+    setVar('--cw', (Math.round(lerp(1120,1024,k)/8)*8)+'px');     /* 8px 一档 */
+    setVar('--cardbg', 'rgb('+Math.round(lerp(255,243,k))+','+Math.round(lerp(255,239,k))+','+Math.round(lerp(255,232,k))+')');
+  }
+
+  if(y < ctaTop){
+    var bg = 'rgb('+Math.round(lerp(PA[0],PB[0],k))+','+Math.round(lerp(PA[1],PB[1],k))+','+Math.round(lerp(PA[2],PB[2],k))+')';
+    if(lastVars.bg !== bg){ lastVars.bg = bg; body.style.backgroundColor = bg; }
+  }
+  var vg = clamp(0.05 + k*0.46, 0, 0.58);
+  if(y < winH*1.7) vg *= Math.max(0.18, y/(winH*1.7));
+  vig.style.opacity = String(vg.toFixed(3));
+
+  if(pc >= 0.17 && y > winH*2.15) body.classList.add('eye');
+  body.classList.toggle('late', (y + winH*0.55) > ctaTop);
+  if(y > winH*2.35 && !fired.panelOn){ fired.panelOn = 1; lateUI(); }
+
+  if(!fired.st1 && pc >= 0.20){ fired.st1=1; pState.textContent='观察中'; }
+  if(!fired.st2 && pc >= 0.48){ fired.st2=1; pState.textContent='记录中'; }
+  if(!fired.st3 && pc >= 0.72){ fired.st3=1; pState.textContent='不要停'; }
+  if(!fired.st4 && pc >= 0.93){ fired.st4=1; pState.textContent='已确认'; pWho.textContent='2'; }
+  if(Math.abs(y - lastDistY) >= 8){
+    lastDistY = y;
+    pDist.textContent = Math.round(y).toLocaleString('en-US')+' px';
+  }
+
+  body.classList.toggle('dark-nav', (y + 66) > (ctaTop - 4));
+  body.classList.toggle('final', y > quietTop - winH*0.5);
+  checkTitle(pc);
+  adTick(pc, y);
+
+  /* 首屏与窗口内的细节：离开第一屏之后才变 */
+  if(y > heroBot - 80 && !fired.heroM){ fired.heroM = 1; heroLate(); }
+  if(pc > 0.40 && !fired.winM){
+    fired.winM = 1;
+    var wmh = document.querySelector('.wmh span');
+    if(wmh) wmh.textContent = '2 人 · 你在其中';
+    var wsum = document.querySelector('.wsum');
+    if(wsum) setText(wsum, '3 项工作即将到期。你已经来不及了。');
+  }
+
+  var qls = $$('#quiet .ql');
+  for(var i=0;i<qls.length;i++){
+    var qon = pq > 0.08 + i*0.24;
+    qls[i].style.opacity = qon ? '1' : '0';
+    qls[i].classList.toggle('on', qon);
+  }
+
+  if(pd > 0) revealLog(pd);
+  logLive(y);
+
+  if(pc > 0.55 && !isTouch){
+    body.classList.add('cursors');
+    if(pc > 0.78 || pd > 0.1) curWrap.classList.add('shadow');
+  }
+
+  checkScrollRules(y);
+  checkView(performance.now());
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ============ 双光标 ============ */
+if(!isTouch){
+  window.addEventListener('mousemove', function(e){
+    mx = e.clientX; my = e.clientY;
+    curWrap.style.transform = 'translate('+mx+'px,'+my+'px)';
+  });
+  (function loopB(){
+    bx += (mx-bx)*0.035; by += (my-by)*0.035;
+    curB.style.transform = 'translate('+(bx-mx)+'px,'+(by-my)+'px) translate(-50%,-50%)';
+    requestAnimationFrame(loopB);
+  })();
+}
+
+/* ============ 改写节拍 ============ */
+var swaps = $$('.swap');
+swaps.forEach(function(el){ el.dataset.from = el.textContent; });
+swaps.forEach(function(el){
+  if(el.closest('.hero')) return;          /* 首屏标题由 heroLate 驱动，第一眼不改 */
+  whenInView(el, function(){ retype(el, el.dataset.to, 1800); }, 1200);
+});
+
+
+/* 页签标题与图标 */
+var titleSteps = [
+  { at:0.34, t:'安澜 · 你还在吗' },
+  { at:0.58, t:'安澜 · 别往下' },
+  { at:0.86, t:'安澜 · 还有 1 位' }
+];
+var titleIdx = 0;
+function checkTitle(pc){
+  if(titleIdx < titleSteps.length && pc >= titleSteps[titleIdx].at){
+    document.title = titleSteps[titleIdx++].t;
+  }
+  if(pd > 0.03 && document.title !== '…') document.title = '…';
+}
+
+/* 首屏：滚走之后才改，第一眼必须是干净的品牌官网 */
+function heroLate(){
+  $$('.hero .swap').forEach(function(el){ retype(el, el.dataset.to, 2800); });
+  setText($('#heroNote'), '已有 1 位用户，正在使用。');
+  setText($('#hmsgp'), '已预留 90 分钟。没有人被通知。');
+  var sm = document.querySelector('.tnote small');
+  if(sm) setText(sm, '无需信用卡 · 无法停用');
+}
+
+whenInView('#logoRow', function(){ setText($('#logoCap'), '它们也在用安澜'); }, 1800);
+whenInView('#logoRow', function(){
+  $$('#logoRow span').forEach(function(s,i){
+    setTimeout(function(){ s.style.opacity='0.12'; }, i*300);
+  });
+}, 8200);
+whenInView('#logoRow', function(){
+  $$('#logoRow span').forEach(function(s){ s.textContent='无名研究所'; s.style.opacity='.5'; });
+}, 9000);
+
+whenInView('#f2t', function(){ setText($('#f2t'), '它比你更早知道'); }, 1700);
+whenInView('#f2p', function(){
+  setText($('#f2p'), '延期、遗漏、无人认领的工作，在变成事故之前就会被标出来。第一次用时，大多数团队都以为有人在盯着他们。第二次用时，就不再这么以为了。');
+}, 2400);
+whenInView('#f3t', function(){ setText($('#f3t'), '安静的通知（已关闭）'); }, 2500);
+whenInView('#f3p', function(){ setText($('#f3p'), '没有红点，没有弹窗。你不再需要被打扰。'); }, 4300);
+
+/* 三步全部变成「记录」 */
+whenInView('#s3t', function(){ setText($('#s3n'),'03 · 记录'); setText($('#s3t'),'它替你记住'); }, 1500);
+whenInView('#s2t', function(){ setText($('#s2n'),'02 · 记录'); setText($('#s2t'),'它替你记住'); }, 3600);
+whenInView('#s1t', function(){ setText($('#s1n'),'01 · 记录'); setText($('#s1t'),'它替你记住'); }, 4100);
+whenInView('#s1p', function(){
+  setText($('#s1p'), '接入你的工作区，把散落在聊天、邮件、文档里的信息收拢成一条时间线。同步是持续的，不能暂停。');
+}, 4600);
+
+/* 收件箱 */
+onScrollThrough('#app', function(){ addMsg(); }, 70, 5200);
+whenInView('#app', function(){ var s=$('#sideGone'); if(s) s.remove(); }, 9000);
+
+/* 数据带 */
+whenInView('#stats', function(){
+  tweenNum($('#n1'), 1, 1500);
+  setText($('#l1'), '个人');
+  tweenNum($('#n2'), 0, 1500, function(v){ return v.toFixed(2)+'%'; });
+  setText($('#l2'), '可以离开');
+  $('#n3').innerHTML = '你<span style="font-size:.5em;color:#7c817e">/5</span>';
+  setText($('#l3'), '被评分');
+  $('#n4').innerHTML = '<span id="dwell" style="font-variant-numeric:tabular-nums">00:00</span>';
+  setText($('#l4'), '你已经在这里停留的时间');
+  setInterval(function(){
+    var s = Math.floor((Date.now()-T0)/1000);
+    var d = document.getElementById('dwell');
+    if(d) d.textContent = pad2(Math.floor(s/60))+':'+pad2(s%60);
+  }, 500);
+}, 1400);
+
+/* 评价 */
+whenInView('#q2', function(){
+  setText($('#q2'), '有一次我半夜改方案，第二天打开时它已经把版本整理好了、附件补全了、时间也改了。我以为是有同事在帮我——后来我看了操作记录，那一晚在线的人只有我一个。');
+}, 1300);
+whenInView('#q3', function(){
+  setText($('#q3'), '用了两年。我记不清的事，它都记得。（该评论已被发布者删除）');
+  $$('.q .av').forEach(function(a){ a.style.background='#191b1c'; });
+}, 3600);
+whenInView('#quoteRow', function(){
+  var last = $$('#quoteRow .q')[2];
+  if(!last || $('#dup1')) return;
+  var c = last.cloneNode(true); c.id='dup1'; c.style.opacity='0';
+  $('#quoteRow').appendChild(c);
+  setTimeout(function(){ c.style.opacity='1'; }, 500);
+  var c2 = last.cloneNode(true); c2.id='dup2'; c2.style.opacity='0';
+  $('#quoteRow').appendChild(c2);
+  setTimeout(function(){ c2.style.opacity='1'; }, 3600);
+}, 8000);
+
+/* 案例 */
+whenInView('#case', function(){
+  tweenNum($('#c1'), -100, 1200, function(v){ return '−'+Math.abs(Math.round(v))+'%'; });
+  tweenNum($('#c2'), -100, 1400, function(v){ return '−'+Math.abs(Math.round(v))+'%'; });
+  setText($('#caseSig'), '周霖 · 长夜资本 · 该职位已取消');
+}, 1800);
+whenInView('#case', function(){
+  setText($('#caseQuote'), '「我们原来有三个人专门做对齐，每周开四次会。上线安澜之后，这三个人被调去做别的事了——因为不再需要有人记得。」（原文如此。我们已无法联系到受访者确认。）');
+  setText($('#c3'), '—');
+}, 8000);
+
+/* 定价 */
+whenInView('#slots', function(){ tierNote($('#slots'), '本期名额 1 · 剩余 −1'); }, 2800);
+whenInView('#slots', function(){ tierNote($('#slots'), '本期名额 1 · 剩余 1（已为你保留）'); }, 6500);
+
+/* 安全 */
+whenInView('#sec', function(){
+  var rows = $$('#dc .r');
+  if(rows[2]) rows[2].querySelector('span').textContent = '你所在的位置';
+  setText($('#secLead'), '全部数据存放在三个可用区，每日增量备份，保留 90 天。传输与存储均为 AES-256 加密。');
+}, 2400);
+whenInView('#sec', function(){
+  var b = $('#b3');
+  if(b){ b.textContent=''; b.style.background='#111316'; b.style.borderColor='#111316'; }
+  var rows = $$('#dc .r');
+  if(rows[2]) rows[2].querySelector('span').textContent = '此处';
+  if(rows[1]){ rows[1].querySelector('span').textContent='此处'; rows[1].querySelectorAll('span')[1].textContent='正在使用'; }
+  setText($('#dcNote'), '跨区同步延迟 0ms。这里只有一处。');
+}, 7000);
+
+/* 更新日志 / 团队：停留越久，改写越多 */
+onScrollThrough('#logList', function(){ nextLog(); }, 74, 4600);
+onScrollThrough('#teamRow', function(){ nextMember(); }, 86, 5000);
+
+/* FAQ */
+whenInView('#faq4', function(){
+  var d = $('#faq4'); d.open = true;
+  setText(d.querySelector('.a'), '在「设置 - 订阅」里找不到取消入口。我们也不知道为什么。');
+}, 3800);
+whenInView('#faq5', function(){
+  var d = $('#faq5'); d.open = true;
+  setText(d.querySelector('summary'), '它看我们的内容吗？');
+  setText(d.querySelector('.a'), '我们不看。它看。');
+}, 7200);
+
+/* 导航：链接一个个消失 */
+whenInView('#sec', function(){
+  var a = $$('nav .links a'); if(a[4]) a[4].classList.add('gone');
+}, 2000);
+whenInView('#changelog', function(){
+  var a = $$('nav .links a');
+  if(a[3]) a[3].classList.add('gone');
+  if(a[2]) a[2].textContent='代价';
+  if(a[0]) a[0].textContent='它的东西';
+}, 3000);
+whenInView('#team', function(){
+  var a = $$('nav .links a');
+  if(a[0]) a[0].classList.add('gone');
+  if(a[1]) a[1].classList.add('gone');
+}, 4000);
+
+/* CTA / 页脚 */
+whenInView('.cta-band', function(){ setText($('#ctaP'), '不需要信用卡。也不需要离开。'); }, 1800);
+whenInView('.cta-band', function(){ setText($('#copyline'), '本页面没有备案号。'); }, 5200);
+whenInView('.cta-band', function(){
+  var d = new Date();
+  setText($('#updline'), '本页面最后更新于 '+d.getFullYear()+' 年 '+(d.getMonth()+1)+' 月 '+d.getDate()+' 日 '+clockOf(Date.now()).slice(0,5));
+}, 8000);
+
+/* 集成 */
+whenInView('#integ', function(){ setText($('#intH'), '它已经在你的工具里。你也在。'); }, 2200);
+whenInView('#itYou', function(){
+  var t = $('#itYou'); if(!t || t.classList.contains('on')) return;
+  t.classList.add('on');
+  t.querySelector('.lg').textContent = '你';
+  t.querySelector('b').textContent = '本机';
+  t.querySelector('small').textContent = '已连接';
+}, 3400);
+whenInView('#integ', function(){ setText($('#integCap'), '13 个集成已连接 · 应用市场另有 199 个'); }, 5600);
+
+/* 对比表 */
+whenInView('#compare', function(){ setText($('#cmpUs'), '它'); }, 2400);
+whenInView('#compare', function(){ setText($('#cmpLoc'), '这里'); }, 3500);
+whenInView('#compare', function(){ setText($('#cmpWho'), '只有它'); }, 4500);
+whenInView('#compare', function(){ setText($('#cmpDel'), '不必'); }, 5300);
+whenInView('#compare', function(){ setText($('#cmpYou'), '正在用'); }, 6100);
+
+/* 状态条 */
+whenInView('#status', function(){
+  var d = $('#stDot');
+  if(d){ d.style.background = '#8a4b3f'; d.style.boxShadow = '0 0 0 4px rgba(138,75,63,.14)'; }
+  setText($('#stT'), '有一项无法关闭');
+  setText($('#stRec'), '记录 进行中');
+}, 2600);
+whenInView('#status', function(){ setText($('#stSub'), '过去 90 天可用性 99.99%，含这一分钟'); }, 5200);
+
+/* 公司时间线 */
+whenInView('#places', function(){ setText($('#plcHz'), '共 3 层 · 62 人 · 第 3 层没有窗。'); }, 2400);
+whenInView('#places', function(){ setText($('#plcSz'), '自建机房 · 就在这附近 · 保留 90 天'); }, 4200);
+whenInView('#places', function(){ setText($('#plcSg'), '2024 年设立 · 2026 年关闭 · 3 人'); }, 6000);
+whenInView('#places', function(){ setText($('#plNote'), '机房不开放。你已经在里面了。'); }, 7800);
+
+whenInView('#press', function(){ setText($('#pr1'), '「把功能减到最少，然后让人放心地被记录。」'); }, 2200);
+whenInView('#press', function(){ setText($('#pr2'), '「没有一个人能说清它具体做了什么，也没有一个人能停用。」'); }, 4400);
+whenInView('#press', function(){ setText($('#pr3'), '「这篇报道没有发表。记者本人也记不清写过。」'); }, 6600);
+
+whenInView('#history', function(){ setText($('#tl25'), '迁入自建机房 · 此处。'); }, 2000);
+whenInView('#history', function(){ setText($('#tl26'), '你加入了。'); }, 3900);
+whenInView('#history', function(){
+  var row = $('#tlRow');
+  if(!row || row.querySelector('.now')) return;
+  var r = document.createElement('div');
+  r.className = 'tl-r now';
+  r.innerHTML = '<div class="y">现在</div><div class="c">记录中。</div>';
+  row.insertBefore(r, row.firstChild);
+}, 6400);
+
+/* 提示条 */
+whenInView('#quotes', function(){ toast('其中 1 位正在查看你的屏幕','warn'); }, 2600);
+whenInView('#team', function(){ toast('那位成员的名字是：你','bad'); }, 3200);
+whenInView('#quiet', function(){ toast('','',false); }, 300);
+
+/* ============ 会话日志 ============ */
+var logBody = $('#logbody'), cursor = $('#cursor');
+var LOG_LINES = [], logShown = 0;
+
+function devName(){
+  var ua = navigator.userAgent, m;
+  if(/iPhone/.test(ua)){
+    m = ua.match(/OS (\d+[_\d]*)/);
+    return 'iPhone' + (m ? ' · iOS ' + m[1].replace(/_/g,'.') : '');
+  }
+  if(/iPad/.test(ua)) return 'iPad · iPadOS';
+  if(/iPod/.test(ua)) return 'iPod';
+  if(/Android/.test(ua)){
+    m = ua.match(/Android\s([\d.]+)/);
+    var mm = ua.match(/;\s*([^;()]+?)\s*Build/);
+    return (mm ? mm[1].trim() : 'Android 设备') + (m ? ' · Android ' + m[1] : '');
+  }
+  if(/Macintosh/.test(ua)){
+    m = ua.match(/Mac OS X (\d+[_\d]*)/);
+    return 'Mac' + (m ? ' · macOS ' + m[1].replace(/_/g,'.') : '');
+  }
+  if(/Windows NT 10/.test(ua)) return 'Windows 10 / 11 · 64 位';
+  if(/Windows NT 6\.3/.test(ua)) return 'Windows 8.1 · 64 位';
+  if(/Windows/.test(ua)) return 'Windows';
+  if(/CrOS/.test(ua)) return 'Chromebook';
+  if(/Linux/.test(ua)) return 'Linux';
+  return '未知设备';
+}
+function broName(){
+  var ua = navigator.userAgent, m;
+  if((m = ua.match(/Edg\/(\d+)/))) return 'Edge ' + m[1];
+  if((m = ua.match(/OPR\/(\d+)/))) return 'Opera ' + m[1];
+  if((m = ua.match(/Firefox\/(\d+)/))) return 'Firefox ' + m[1];
+  if((m = ua.match(/Chrome\/(\d+)/))) return 'Chrome ' + m[1];
+  if((m = ua.match(/Version\/(\d+).*Safari/))) return 'Safari ' + m[1];
+  return '浏览器';
+}
+function canvasTag(){
+  try{
+    var c = document.createElement('canvas');
+    c.width = 220; c.height = 44;
+    var x = c.getContext('2d');
+    x.textBaseline = 'top'; x.font = '15px Arial';
+    x.fillStyle = '#f60'; x.fillRect(0,0,220,44);
+    x.fillStyle = '#069'; x.fillText('halcyon',3,3);
+    var d = c.toDataURL(), h = 5381;
+    for(var i = 0; i < d.length; i += 6) h = ((h * 33) ^ d.charCodeAt(i)) >>> 0;
+    return h.toString(16).slice(0,8);
+  }catch(e){ return null; }
+}
+function num(n){
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function buildLog(){
+  var tz = '本地';
+  try{ tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '本地'; }catch(e){}
+  var now = Date.now();
+  var L = [];
+  var secs = Math.max(1, Math.round((now-T0)/1000));
+  var span = Math.max(secs, 20) * 1000;
+  var t0 = now - span;
+  function add(f, txt, cls){ L.push({ t: (txt ? clockOf(t0 + Math.round(span*f)) : ''), txt:txt, cls:cls||'' }); }
+
+  var connJ = navigator.connection || navigator.mozConnection || {};
+  var conn = connJ.effectiveType || '未知';
+  var dpr = window.devicePixelRatio || 1;
+  var theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  var reduce = (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? '开启' : '关闭';
+  var winW = Math.round(window.innerWidth), winHt = Math.round(window.innerHeight);
+  var histN = (window.history && history.length) || 1;
+  var fp = canvasTag();
+
+  add(0.00, '会话开始 · 来源：直接访问 · 无引荐');
+  add(0.025, '这是你在本浏览器打开的第 '+histN+' 个页面');
+  add(0.05, '时区 '+tz+' · 本地时间 '+clockOf(now).slice(0,5));
+  add(0.075, '设备 '+devName()+' · '+broName());
+  add(0.10, '视口 '+winW+' × '+winHt+' @'+dpr+'× · 屏幕 '+Math.round(screen.width)+' × '+Math.round(screen.height));
+  add(0.125, '处理器 '+(navigator.hardwareConcurrency||'?')+' 核 · 内存 '+(navigator.deviceMemory||'?')+' GB · 网络 '+conn);
+  add(0.15, '触摸点 '+(navigator.maxTouchPoints||0)+' · 语言 '+(navigator.language||'zh-CN')+' · 配色 '+theme);
+  add(0.175, '减少动态效果：'+reduce);
+  if(fp) add(0.195, '渲染指纹 '+fp+'（这台设备唯一）');
+  add(0, '');
+  add(0.24, '页面高度 '+num(docH)+' 像素 · 需要滚动 '+num(Math.max(0, docH-winH))+' 像素');
+  add(0.275, '你滚动了 '+num(S.maxScroll)+' 像素 · 用时 '+secs+' 秒');
+  add(0.30, '峰值速度 '+num(S.speedMax||0)+' 像素 / 秒');
+  if(S.mouseDist > 20) add(0.325, '鼠标移动 '+num(S.mouseDist)+' 像素 · 点击 '+S.clicks+' 次 · 按键 '+S.keys+' 次');
+  else add(0.325, '触摸滚动 · 点击 '+S.clicks+' 次 · 按键 '+S.keys+' 次');
+  if(S.copies) add(0.345, '你复制了 '+S.copies+' 次');
+  add(0, '');
+
+  if(S.tabLeaves.length){
+    var lv = S.tabLeaves[0];
+    L.push({ t: clockOf(lv.at), txt: '你切到了另一个标签页，离开 '+lv.dur+' 秒', cls:'' });
+    L.push({ t: clockOf(lv.at + lv.dur*1000), txt: '你回来了 · 第 '+S.tabBacks+' 次', cls:'' });
+  } else {
+    add(0.40, '你一直没有离开这个页面');
+    add(0.425, '这很少见');
+  }
+  add(0, '');
+  add(0.47, '最长静止 '+(Math.round(S.idleMax/1000)||6)+' 秒 · 期间没有移动鼠标');
+  add(0.495, '窗口没有被最小化 · 没有被缩放'+(S.resizes>1 ? '（改变了 '+S.resizes+' 次）' : ''));
+  add(0.52, '音频没有启用 · 你听到的一切都是你自己想的');
+  add(0, '');
+  add(0.58, '你在这一页停留 '+secs+' 秒 · 同类页面平均 41 秒');
+  add(0.605, '你比 96% 的人看得更久');
+  add(0, '');
+  add(0.66, '你在读这一行。');
+  add(0, '');
+  add(0.70, '以上全部准确。', 'end');
+
+  /* —— 行数开始不够用了 —— */
+  add(0.73, '你回头了。', 'odd');
+  add(0, ''); add(0, ''); add(0, ''); add(0, '');
+  add(0.79, '房间里有两个人的呼吸。一个是你的。', 'odd');
+  add(0, ''); add(0, ''); add(0, '');
+  add(0.845, '你没有回头。', 'odd');
+  add(0, ''); add(0, '');
+  add(0.878, '你刚才想关掉这个页面。你没有关。', 'odd');
+  add(0, '');
+  add(0.90, '这不是今天第一次。', 'odd');
+  add(0, ''); add(0, '');
+  add(0.93, '日志已暂停。');
+  add(0.937, '继续记录需要你的许可。');
+  add(0.944, '你没有许可。');
+  add(0.951, '已继续。');
+  add(0, '');
+  add(0.97, '本次会话已结束。', 'end');
+  return L;
+}
+
+function pushLine(L){
+  var div = document.createElement('div');
+  if(L.cls) div.className = L.cls;
+  if(L.t){
+    var sp = document.createElement('span');
+    sp.className = 't'; sp.textContent = '['+L.t+']';
+    div.appendChild(sp);
+  }
+  div.appendChild(document.createTextNode(L.txt));
+  logBody.appendChild(div);
+  if(L.txt) tick(L.cls==='odd'?380:700, .011, .07);
+  return div;
+}
+
+/* 日志后段开始「实时回应」：你往上滚、你停下来，它都当场记一条。
+   这是这段真正的钩子——前面所有内容是提前写好的，只有这几条是跟着你动的。 */
+var liveCount = 0, livePrevY = -1, liveIdleDone = 0, liveLastAt = 0;
+function liveLog(txt){
+  if(dimmed || liveCount >= 5) return;
+  var nowL = Date.now();
+  if(nowL - liveLastAt < 4200) return;
+  liveLastAt = nowL;
+  liveCount++;
+  pushLine({ t: clockOf(Date.now()), txt: txt, cls:'odd' });
+  cursor.classList.add('on');
+}
+function logLive(y){
+  if(pd < 0.58 || dimmed) return;
+  if(livePrevY < 0){ livePrevY = y; return; }
+  var dy = y - livePrevY;
+  if(dy < -26){
+    livePrevY = y;
+    liveLog('你往回滚了 '+Math.abs(Math.round(dy))+' 像素。');
+    return;
+  }
+  if(dy > 26) livePrevY = y;
+  var idle = Date.now() - S.lastMove;
+  if(idle > 7000 && !liveIdleDone){
+    liveIdleDone = 1;
+    liveLog('你停了 '+Math.round(idle/1000)+' 秒。');
+  }
+}
+
+function revealLog(f){
+  if(!LOG_LINES.length) LOG_LINES = buildLog();
+  var target = Math.min(LOG_LINES.length, Math.floor(f * LOG_LINES.length));
+  while(logShown < target){
+    pushLine(LOG_LINES[logShown++]);
+  }
+  if(logShown > 0 && !dimmed) cursor.classList.add('on');
+  if(logShown >= LOG_LINES.length && !fired.logEnd){
+    fired.logEnd = 1;
+    setTimeout(lightsOut, 9000);
+  }
+}
+
+/* ============ 熄灯 ============ */
+var dimmed = false;
+function lightsOut(){
+  if(dimmed) return;
+  dimmed = true;
+  killAudio();
+  cursor.classList.remove('on');
+  logEl.classList.add('dark');
+  setTimeout(function(){
+    if(!$('#logtail')) return;
+    $('#logtail').classList.add('on');
+  }, 16500);
+}
+})();
+</script>
+</body>
+</html>

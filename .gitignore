@@ -1,0 +1,7 @@
+# EdgeOne Pages 项目绑定信息（含项目 ID / 站点 ID），不入库
+.edgeone/
+
+# 本地临时
+*.log
+.DS_Store
+Thumbs.db
