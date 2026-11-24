@@ -347,14 +347,15 @@ footer a:hover{color:#cfcbc3}
 footer .last{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:22px;
   border-top:1px solid rgba(255,255,255,.06);color:#666b64}
 
-#quiet{height:250vh;background:#050505;position:relative}
-#quiet .sticky{position:sticky;top:0;height:100vh;background:#050505;
-  display:flex;flex-direction:column;justify-content:center;align-items:center;padding:0 0 4vh}
-#quiet .ql{position:relative;text-align:center;padding:0 32px;margin:0;
+#quiet{height:430vh;background:#050505;position:relative}
+#quiet .sticky{position:sticky;top:0;height:100vh;background:#050505;overflow:hidden}
+/* 句子叠在同一位置依次浮现，像字幕，而不是一行行往下堆 */
+#quiet .ql{position:absolute;left:0;right:0;top:50%;text-align:center;padding:0 32px;margin:0;
   font-family:"Songti SC","Noto Serif SC","SimSun",serif;color:#a9a29a;
   font-size:clamp(15px,2.1vw,22px);letter-spacing:.22em;line-height:2.2;opacity:0;
-  transform:translateY(6px);transition:opacity 2.6s,transform 2.6s}
-#quiet .ql.on{transform:none}
+  transform:translate3d(0,-50%,0) translateY(10px);
+  transition:opacity 2.2s ease,transform 2.2s ease}
+#quiet .ql.on{transform:translate3d(0,-50%,0)}
 
 #logsec{height:520vh;background:#050505;position:relative}
 #logsec .sticky{position:sticky;top:0;height:100vh;padding:14vh 0 12vh;background:#050505;
@@ -375,6 +376,8 @@ footer .last{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
   #logbody{line-height:1.85}
 }
 #logbody .t{color:#5a5650;margin-right:12px}
+#logbody .kv{color:#6f6c66;letter-spacing:.02em}
+#logbody .kvt{color:#55524c;letter-spacing:.18em;margin-top:8px}
 #logbody .odd{color:#a8564b}
 #logbody .end{color:#ded6c8}
 .cursor{display:inline-block;width:7px;height:14px;background:#8e8880;vertical-align:-2px;
@@ -1042,6 +1045,11 @@ body.late .ad-card{border-color:#d9d4c9;box-shadow:0 7px 22px rgba(30,26,18,.10)
     <p class="ql" data-q="0">页面到这里就结束了。</p>
     <p class="ql" data-q="1">下面这部分，是我们为你保留的。</p>
     <p class="ql" data-q="2">它不属于产品说明。</p>
+    <p class="ql" data-q="3">让我看看你在用什么。</p>
+    <p class="ql" data-q="4">哦。</p>
+    <p class="ql" data-q="5" id="qDev">&nbsp;</p>
+    <p class="ql" data-q="6">也装得下我。</p>
+    <p class="ql" data-q="7" id="qYou">&nbsp;</p>
   </div>
 </section>
 
@@ -1672,7 +1680,7 @@ function frame(){
     }
   } else { lastY = y; lastYAt = nowMs; }
 
-  pq = clamp((y - quietTop) / Math.max(1, winH*1.5), 0, 1);
+  pq = clamp((y - quietTop) / Math.max(1, winH*3), 0, 1);
   pd = clamp((y - logTop) / logLen, 0, 1);
 
   setVar('--p', p.toFixed(3));
@@ -1729,10 +1737,25 @@ function frame(){
   }
 
   var qls = $$('#quiet .ql');
-  for(var i=0;i<qls.length;i++){
-    var qon = pq > 0.08 + i*0.24;
-    qls[i].style.opacity = qon ? '1' : '0';
-    qls[i].classList.toggle('on', qon);
+  var qcur = -1;
+  for(var i=0;i<qls.length;i++){ if(pq > 0.05 + i*0.118) qcur = i; }
+  for(var j=0;j<qls.length;j++){
+    /* 只亮当前句。之前留过「上一句 0.3 残影」，但两句都是绝对居中，
+       会叠在同一行糊成一团——所以改成干净的逐句字幕。 */
+    var op = j === qcur ? 1 : 0;
+    if(qls[j]._op !== op){ qls[j]._op = op; qls[j].style.opacity = String(op); }
+    qls[j].classList.toggle('on', j <= qcur);
+  }
+
+  /* 「让我看看你在用什么」之后的两个空位，用真实信息填 */
+  if(pq > 0 && !fired.qfill){
+    fired.qfill = 1;
+    var qd = $('#qDev'), qy = $('#qYou');
+    var dw = Math.round(window.innerWidth), dh = Math.round(window.innerHeight);
+    if(qd) qd.textContent = devShort() + '。' + dw + ' × ' + dh + '。';
+    if(qy) qy.textContent = isTouch
+      ? '你把它握在手里。手是热的。'
+      : '你没有把它拿在手里。我就在你的桌面上。';
   }
 
   if(pd > 0) revealLog(pd);
@@ -2009,6 +2032,18 @@ function devName(){
   if(/Linux/.test(ua)) return 'Linux';
   return '未知设备';
 }
+function devShort(){
+  var ua = navigator.userAgent, m;
+  if(/iPhone/.test(ua)) return 'iPhone';
+  if(/iPad/.test(ua)) return 'iPad';
+  if(/Android/.test(ua)){
+    m = ua.match(/;\s*([^;()]+?)\s*Build/);
+    return m ? m[1].trim() : '这台安卓';
+  }
+  if(/Macintosh/.test(ua)) return 'Mac';
+  if(/Windows/.test(ua)) return '这台电脑';
+  return '这台设备';
+}
 function broName(){
   var ua = navigator.userAgent, m;
   if((m = ua.match(/Edg\/(\d+)/))) return 'Edge ' + m[1];
@@ -2082,7 +2117,7 @@ function buildLog(){
   }
   add(0, '');
   add(0.47, '最长静止 '+(Math.round(S.idleMax/1000)||6)+' 秒 · 期间没有移动鼠标');
-  add(0.495, '窗口没有被最小化 · 没有被缩放'+(S.resizes>1 ? '（改变了 '+S.resizes+' 次）' : ''));
+  add(0.495, '窗口宽度没有变过'+(S.resizes>1 ? '（不算你刚改的那 '+S.resizes+' 次）' : '')+' · 页面一直开着');
   add(0.52, '音频没有启用 · 你听到的一切都是你自己想的');
   add(0, '');
   add(0.58, '你在这一页停留 '+secs+' 秒 · 同类页面平均 41 秒');
@@ -2092,16 +2127,28 @@ function buildLog(){
   add(0, '');
   add(0.70, '以上全部准确。', 'end');
 
-  /* —— 行数开始不够用了 —— */
-  add(0.73, '你回头了。', 'odd');
-  add(0, ''); add(0, ''); add(0, ''); add(0, '');
-  add(0.79, '房间里有两个人的呼吸。一个是你的。', 'odd');
-  add(0, ''); add(0, ''); add(0, '');
-  add(0.845, '你没有回头。', 'odd');
-  add(0, ''); add(0, '');
-  add(0.878, '你刚才想关掉这个页面。你没有关。', 'odd');
+  /* —— 档案：把念过的、没念过的，一次汇总 —— */
+  add(0.715, '档案 · 只此一份', 'kvt');
+  add(0.722, '设备　'+devName(), 'kv');
+  add(0.729, '视口　'+winW+' × '+winHt+' @'+dpr+'×', 'kv');
+  if(fp) add(0.736, '指纹　'+fp, 'kv');
+  add(0.743, '停留　'+Math.floor(secs/60)+' 分 '+(secs%60)+' 秒', 'kv');
+  add(0.750, '滚动　'+num(S.maxScroll)+' 像素', 'kv');
+  add(0.757, '切换　'+S.tabLeaves.length+' 次 · 复制 '+S.copies+' 次', 'kv');
   add(0, '');
-  add(0.90, '这不是今天第一次。', 'odd');
+  add(0.775, '—— 以上数据只写在这一页，不在别处 ——', 'kv');
+  add(0, '');
+
+  /* —— 行数开始不够用了。这里的话都不可验证，所以不会被拆穿 —— */
+  add(0.80, '你在犹豫要不要回头。', 'odd');
+  add(0, ''); add(0, '');
+  add(0.84, '房间里有两个人的呼吸。一个是你的。', 'odd');
+  add(0, ''); add(0, '');
+  add(0.875, '不用回头。我在这里就能看见你。', 'odd');
+  add(0, ''); add(0, '');
+  add(0.905, '你刚才想关掉这个页面。你没有关。', 'odd');
+  add(0, '');
+  add(0.925, '这句话你以前读到过。', 'odd');
   add(0, ''); add(0, '');
   add(0.93, '日志已暂停。');
   add(0.937, '继续记录需要你的许可。');
